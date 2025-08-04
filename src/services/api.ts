@@ -117,6 +117,27 @@ export const usuarioService = {
   },
 };
 
+// Servicios de Pacientes
+export const pacienteService = {
+  // Buscar paciente por documento
+  buscarPorDocumento: async (documento: string): Promise<any> => {
+    const response = await api.get<ApiResponse<any>>(`/pacientes/buscar/${documento}`);
+    return response.data.data!;
+  },
+
+  // Obtener citas del paciente
+  getCitasPaciente: async (pacienteId: number): Promise<any[]> => {
+    const response = await api.get<ApiResponse<any[]>>(`/pacientes/${pacienteId}/citas`);
+    return response.data.data || [];
+  },
+
+  // Crear nuevo paciente
+  crearPaciente: async (pacienteData: any): Promise<any> => {
+    const response = await api.post<ApiResponse<any>>('/pacientes', pacienteData);
+    return response.data.data!;
+  },
+};
+
 // Servicios de Estadísticas
 export const estadisticasService = {
   // Obtener estadísticas generales

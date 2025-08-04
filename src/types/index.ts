@@ -41,4 +41,24 @@ export interface Estadisticas {
   turnos_pendientes: number;
   tiempo_promedio_espera: number;
   servicios_activos: number;
+}
+
+export interface Paciente {
+  id: number;
+  nombre: string;
+  documento: string;
+  email?: string;
+  telefono?: string;
+  fecha_nacimiento?: string;
+  tiene_cita: boolean;
+  citas?: Cita[];
+}
+
+export interface Cita {
+  id: number;
+  fecha: string;
+  hora: string;
+  servicio: string;
+  estado: 'programada' | 'confirmada' | 'cancelada' | 'completada';
+  paciente_id: number;
 } 
