@@ -1,5 +1,21 @@
 import axios from 'axios';
-import { Turno, Servicio, Usuario, ApiResponse, TurnoRequest, Estadisticas } from '../types';
+import { 
+  Turno, 
+  Servicio, 
+  Usuario, 
+  ApiResponse, 
+  TurnoRequest, 
+  Estadisticas,
+  Paciente,
+  Cita,
+  TurnoResponse,
+  BuscarPacienteRequest,
+  AsignarTurnoRequest,
+  BuscarPacienteResponse,
+  AsignarTurnoResponse,
+  TurnosActivosResponse,
+  TiposDocumentoResponse
+} from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -19,7 +35,7 @@ api.interceptors.response.use(
   }
 );
 
-// Servicios de Turnos
+// Servicios de Turnos (legacy - mantener para compatibilidad)
 export const turnoService = {
   // Obtener todos los turnos
   getTurnos: async (): Promise<Turno[]> => {
@@ -117,24 +133,88 @@ export const usuarioService = {
   },
 };
 
-// Servicios de Pacientes
+// Servicios de Pacientes (actualizados para el backend real)
 export const pacienteService = {
   // Buscar paciente por documento
-  buscarPorDocumento: async (documento: string): Promise<any> => {
-    const response = await api.get<ApiResponse<any>>(`/pacientes/buscar/${documento}`);
-    return response.data.data!;
+  buscarPorDocumento: async (tipoDocumento: string, numeroDocumento: string): Promise<{ paciente: Paciente; citas: Cita[] }> => {
+    const requestData: BuscarPacienteRequest = {
+      tipo_documento: tipoDocumento,
+      numero_documento: numeroDocumento
+    };
+    
+    const response = await api.post<BuscarPacienteResponse>('/buscar-paciente', requestData);
+    
+    if (response.data.datos) {
+      return {
+        paciente: response.data.datos.paciente,
+        citas: response.data.datos.citas || []
+      };
+    } else {
+      throw new Error('Paciente no encontrado');
+    }
   },
 
-  // Obtener citas del paciente
-  getCitasPaciente: async (pacienteId: number): Promise<any[]> => {
-    const response = await api.get<ApiResponse<any[]>>(`/pacientes/${pacienteId}/citas`);
-    return response.data.data || [];
+  // Obtener tipos de documento
+  getTiposDocumento: async (): Promise<string[]> => {
+    const response = await api.get<TiposDocumentoResponse>('/tipos-documento');
+    return response.data.datos || [];
+  },
+};
+
+// Servicios de Turnos (actualizados para el backend real)
+export const digiturnoService = {
+  // Asignar turno
+  asignarTurno: async (numeroPaciente: number, idCita: number): Promise<TurnoResponse> => {
+    const requestData: AsignarTurnoRequest = {
+      numero_paciente: numeroPaciente,
+      id_cita: idCita
+    };
+    
+    const response = await api.post<AsignarTurnoResponse>('/asignar-turno', requestData);
+    
+    if (response.data.datos) {
+      return response.data.datos;
+    } else {
+      throw new Error('Error al asignar turno');
+    }
   },
 
-  // Crear nuevo paciente
-  crearPaciente: async (pacienteData: any): Promise<any> => {
-    const response = await api.post<ApiResponse<any>>('/pacientes', pacienteData);
-    return response.data.data!;
+  // Obtener turnos activos
+  getTurnosActivos: async (): Promise<TurnoResponse[]> => {
+    const response = await api.get<TurnosActivosResponse>('/turnos-activos');
+    return response.data.datos || [];
+  },
+
+  // Obtener siguiente turno
+  getSiguienteTurno: async (): Promise<TurnoResponse | null> => {
+    try {
+      const response = await api.get<TurnosActivosResponse>('/siguiente-turno');
+      return response.data.datos?.[0] || null;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  // Llamar turno
+  llamarTurno: async (numeroTurno: string): Promise<void> => {
+    await api.post(`/llamar-turno/${numeroTurno}`);
+  },
+
+  // Finalizar turno
+  finalizarTurno: async (numeroTurno: string): Promise<void> => {
+    await api.post(`/finalizar-turno/${numeroTurno}`);
+  },
+
+  // Obtener turnos para facturación
+  getTurnosFacturacion: async (): Promise<TurnoResponse[]> => {
+    const response = await api.get<TurnosActivosResponse>('/turnos-facturacion');
+    return response.data.datos || [];
+  },
+
+  // Obtener estadísticas
+  getEstadisticas: async (): Promise<any> => {
+    const response = await api.get('/estadisticas');
+    return response.data;
   },
 };
 

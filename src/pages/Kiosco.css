@@ -200,6 +200,58 @@
   font-weight: 600;
 }
 
+/* Citas Grid */
+.citas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.cita-button {
+  background: white;
+  border: 3px solid #e9ecef;
+  border-radius: 20px;
+  padding: 30px 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.cita-button:hover {
+  border-color: #27ae60;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+}
+
+.cita-button:active {
+  transform: translateY(-1px);
+}
+
+.cita-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.cita-button h3 {
+  font-size: 1.6rem;
+  color: #2c3e50;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.cita-button p {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin: 5px 0;
+  line-height: 1.4;
+}
+
 /* Data Form */
 .data-form {
   max-width: 600px;

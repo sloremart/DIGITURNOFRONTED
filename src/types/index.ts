@@ -43,22 +43,69 @@ export interface Estadisticas {
   servicios_activos: number;
 }
 
+// Nuevos tipos basados en la estructura real del backend
 export interface Paciente {
-  id: number;
-  nombre: string;
-  documento: string;
-  email?: string;
-  telefono?: string;
+  numero_paciente: number;
+  tipo_id: string;
+  id_paciente: string;
+  nombre1?: string;
+  nombre2?: string;
+  apellido1?: string;
+  apellido2?: string;
   fecha_nacimiento?: string;
-  tiene_cita: boolean;
-  citas?: Cita[];
+  telefono?: string;
 }
 
 export interface Cita {
-  id: number;
-  fecha: string;
-  hora: string;
-  servicio: string;
-  estado: 'programada' | 'confirmada' | 'cancelada' | 'completada';
-  paciente_id: number;
+  id_cita: number;
+  fecha_cita: string;
+  hora_cita?: string;
+  id_medico?: string;
+  procedimiento?: string;
+  estado?: number;
+  cumplida?: boolean;
+  observaciones?: string;
+}
+
+export interface TurnoResponse {
+  numero_turno: string;
+  hora_asignacion: string;
+  paciente: Paciente;
+  cita: Cita;
+  estado: string;
+}
+
+// Request types for the backend
+export interface BuscarPacienteRequest {
+  tipo_documento: string;
+  numero_documento: string;
+}
+
+export interface AsignarTurnoRequest {
+  numero_paciente: number;
+  id_cita: number;
+}
+
+// Response types for the backend
+export interface BuscarPacienteResponse {
+  mensaje: string;
+  datos?: {
+    paciente: Paciente;
+    citas: Cita[];
+  };
+}
+
+export interface AsignarTurnoResponse {
+  mensaje: string;
+  datos?: TurnoResponse;
+}
+
+export interface TurnosActivosResponse {
+  mensaje: string;
+  datos?: TurnoResponse[];
+}
+
+export interface TiposDocumentoResponse {
+  mensaje: string;
+  datos?: string[];
 } 

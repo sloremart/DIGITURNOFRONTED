@@ -1,83 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { servicioService, turnoService, pacienteService } from '../services/api';
-import { Servicio, TurnoRequest, Paciente } from '../types';
+import { pacienteService, digiturnoService } from '../services/api';
+import { Paciente, Cita, TurnoResponse } from '../types';
 import './Kiosco.css';
 
 const Kiosco: React.FC = () => {
-  const [servicios, setServicios] = useState<Servicio[]>([]);
-  const [selectedServicio, setSelectedServicio] = useState<Servicio | null>(null);
-  const [documento, setDocumento] = useState('');
+  const [tipoDocumento, setTipoDocumento] = useState('CC');
+  const [numeroDocumento, setNumeroDocumento] = useState('');
   const [pacienteEncontrado, setPacienteEncontrado] = useState<Paciente | null>(null);
+  const [citasPaciente, setCitasPaciente] = useState<Cita[]>([]);
+  const [citaSeleccionada, setCitaSeleccionada] = useState<Cita | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [turnoAsignado, setTurnoAsignado] = useState<any>(null);
-  const [step, setStep] = useState<'documento' | 'servicios' | 'confirmacion' | 'exito'>('documento');
-
-  // Datos de ejemplo para probar la interfaz
-  const serviciosEjemplo: Servicio[] = [
-    {
-      id: 1,
-      nombre: "Consulta General",
-      descripcion: "Atención médica general y revisión de síntomas",
-      activo: true,
-      tiempo_promedio: 15
-    },
-    {
-      id: 2,
-      nombre: "Odontología",
-      descripcion: "Servicios dentales y limpieza bucal",
-      activo: true,
-      tiempo_promedio: 30
-    },
-    {
-      id: 3,
-      nombre: "Laboratorio",
-      descripcion: "Análisis de sangre y exámenes médicos",
-      activo: true,
-      tiempo_promedio: 20
-    },
-    {
-      id: 4,
-      nombre: "Radiología",
-      descripcion: "Rayos X y estudios de imagen",
-      activo: true,
-      tiempo_promedio: 25
-    },
-    {
-      id: 5,
-      nombre: "Farmacia",
-      descripcion: "Entrega de medicamentos recetados",
-      activo: true,
-      tiempo_promedio: 10
-    },
-    {
-      id: 6,
-      nombre: "Especialidades",
-      descripcion: "Cardiología, dermatología y otras especialidades",
-      activo: true,
-      tiempo_promedio: 45
-    }
-  ];
+  const [turnoAsignado, setTurnoAsignado] = useState<TurnoResponse | null>(null);
+  const [step, setStep] = useState<'documento' | 'citas' | 'confirmacion' | 'exito'>('documento');
+  const [tiposDocumento, setTiposDocumento] = useState<string[]>(['CC', 'TI', 'CE', 'PA']);
 
   useEffect(() => {
-    cargarServicios();
+    cargarTiposDocumento();
   }, []);
 
-  const cargarServicios = async () => {
+  const cargarTiposDocumento = async () => {
     try {
-      // Intentar cargar servicios del backend
-      const serviciosData = await servicioService.getServiciosActivos();
-      setServicios(serviciosData);
+      const tipos = await pacienteService.getTiposDocumento();
+      setTiposDocumento(tipos);
     } catch (error) {
-      console.log('Usando datos de ejemplo para demostración');
-      // Si falla, usar datos de ejemplo
-      setServicios(serviciosEjemplo);
+      console.log('Usando tipos de documento por defecto');
     }
   };
 
   const buscarPaciente = async () => {
-    if (!documento.trim()) {
-      setMessage('Por favor ingrese su número de cédula');
+    if (!numeroDocumento.trim()) {
+      setMessage('Por favor ingrese su número de documento');
       return;
     }
 
@@ -86,26 +39,33 @@ const Kiosco: React.FC = () => {
 
     try {
       // Buscar paciente en el backend
-      const paciente = await pacienteService.buscarPorDocumento(documento);
-      setPacienteEncontrado(paciente);
-      setStep('servicios');
-      setMessage('Paciente encontrado. Seleccione el servicio.');
+      const resultado = await pacienteService.buscarPorDocumento(tipoDocumento, numeroDocumento);
+      setPacienteEncontrado(resultado.paciente);
+      setCitasPaciente(resultado.citas);
+      
+      if (resultado.citas.length > 0) {
+        setStep('citas');
+        setMessage('Paciente encontrado. Seleccione su cita para asignar turno.');
+      } else {
+        setMessage('Paciente encontrado pero no tiene citas programadas para hoy.');
+      }
     } catch (error) {
-      setMessage('Paciente no encontrado. Verifique su número de cédula.');
+      setMessage('Paciente no encontrado. Verifique su tipo y número de documento.');
       setPacienteEncontrado(null);
+      setCitasPaciente([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const seleccionarServicio = (servicio: Servicio) => {
-    setSelectedServicio(servicio);
+  const seleccionarCita = (cita: Cita) => {
+    setCitaSeleccionada(cita);
     setStep('confirmacion');
     setMessage('');
   };
 
   const asignarTurno = async () => {
-    if (!selectedServicio || !pacienteEncontrado) {
+    if (!citaSeleccionada || !pacienteEncontrado) {
       setMessage('Faltan datos para asignar el turno');
       return;
     }
@@ -114,39 +74,26 @@ const Kiosco: React.FC = () => {
     setMessage('');
 
     try {
-      // Intentar crear turno en el backend
-      const turnoData: TurnoRequest = {
-        servicio_id: selectedServicio.id,
-        nombre_cliente: pacienteEncontrado.nombre,
-        email_cliente: pacienteEncontrado.email || ''
-      };
-
-      const nuevoTurno = await turnoService.crearTurno(turnoData);
-      setTurnoAsignado(nuevoTurno);
+      // Asignar turno usando el backend real
+      const turno = await digiturnoService.asignarTurno(
+        pacienteEncontrado.numero_paciente,
+        citaSeleccionada.id_cita
+      );
+      setTurnoAsignado(turno);
       setStep('exito');
     } catch (error) {
-      // Si falla, simular creación exitosa para demostración
-      console.log('Simulando creación de turno para demostración');
-      const turnoSimulado = {
-        id: Math.floor(Math.random() * 1000) + 1,
-        numero: Math.floor(Math.random() * 100) + 1,
-        estado: 'pendiente',
-        servicio: selectedServicio.nombre,
-        fecha_creacion: new Date().toISOString(),
-        nombre_cliente: pacienteEncontrado.nombre,
-        documento: documento
-      };
-      setTurnoAsignado(turnoSimulado);
-      setStep('exito');
+      setMessage('Error al asignar turno. Intente nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const reiniciar = () => {
-    setSelectedServicio(null);
-    setDocumento('');
+    setTipoDocumento('CC');
+    setNumeroDocumento('');
     setPacienteEncontrado(null);
+    setCitasPaciente([]);
+    setCitaSeleccionada(null);
     setMessage('');
     setTurnoAsignado(null);
     setStep('documento');
@@ -155,13 +102,32 @@ const Kiosco: React.FC = () => {
   const volverADocumento = () => {
     setStep('documento');
     setPacienteEncontrado(null);
+    setCitasPaciente([]);
+    setCitaSeleccionada(null);
     setMessage('');
   };
 
-  const volverAServicios = () => {
-    setStep('servicios');
-    setSelectedServicio(null);
+  const volverACitas = () => {
+    setStep('citas');
+    setCitaSeleccionada(null);
     setMessage('');
+  };
+
+  const getNombreCompleto = (paciente: Paciente) => {
+    const nombres = [paciente.nombre1, paciente.nombre2].filter(Boolean).join(' ');
+    const apellidos = [paciente.apellido1, paciente.apellido2].filter(Boolean).join(' ');
+    return `${nombres} ${apellidos}`.trim();
+  };
+
+  const getEstadoCita = (estado: number) => {
+    switch (estado) {
+      case 0: return 'Programada';
+      case 1: return 'Confirmada';
+      case 2: return 'En Proceso';
+      case 3: return 'Completada';
+      case 4: return 'Cancelada';
+      default: return 'Desconocido';
+    }
   };
 
   return (
@@ -177,11 +143,11 @@ const Kiosco: React.FC = () => {
         <div className="step-indicator">
           <div className={`step ${step === 'documento' ? 'active' : ''}`}>
             <span className="step-number">1</span>
-            <span className="step-text">Cédula</span>
+            <span className="step-text">Documento</span>
           </div>
-          <div className={`step ${step === 'servicios' ? 'active' : ''}`}>
+          <div className={`step ${step === 'citas' ? 'active' : ''}`}>
             <span className="step-number">2</span>
-            <span className="step-text">Servicio</span>
+            <span className="step-text">Citas</span>
           </div>
           <div className={`step ${step === 'confirmacion' ? 'active' : ''}`}>
             <span className="step-number">3</span>
@@ -205,18 +171,32 @@ const Kiosco: React.FC = () => {
           <div className="step-content">
             <div className="step-header">
               <h2>👋 ¡Bienvenido!</h2>
-              <p>Ingrese su número de cédula para continuar</p>
+              <p>Ingrese sus datos para continuar</p>
             </div>
 
             <div className="data-form">
               <div className="form-group">
-                <label htmlFor="documento">Número de Cédula:</label>
+                <label htmlFor="tipoDocumento">Tipo de Documento:</label>
+                <select
+                  id="tipoDocumento"
+                  value={tipoDocumento}
+                  onChange={(e) => setTipoDocumento(e.target.value)}
+                  className="kiosco-input"
+                >
+                  {tiposDocumento.map((tipo) => (
+                    <option key={tipo} value={tipo}>{tipo}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="numeroDocumento">Número de Documento:</label>
                 <input
                   type="text"
-                  id="documento"
-                  value={documento}
-                  onChange={(e) => setDocumento(e.target.value)}
-                  placeholder="Ej: 1234567890"
+                  id="numeroDocumento"
+                  value={numeroDocumento}
+                  onChange={(e) => setNumeroDocumento(e.target.value)}
+                  placeholder="Ej: 12345678"
                   className="kiosco-input"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
@@ -239,12 +219,12 @@ const Kiosco: React.FC = () => {
           </div>
         )}
 
-        {/* Step 2: Service Selection */}
-        {step === 'servicios' && (
+        {/* Step 2: Citas Selection */}
+        {step === 'citas' && (
           <div className="step-content">
             <div className="step-header">
-              <h2>🏥 Seleccionar Servicio</h2>
-              <p>Elija el servicio que necesita</p>
+              <h2>📅 Sus Citas</h2>
+              <p>Seleccione la cita para asignar turno</p>
             </div>
 
             {/* Patient Info Display */}
@@ -252,34 +232,34 @@ const Kiosco: React.FC = () => {
               <div className="patient-info-display">
                 <h3>✅ Paciente Encontrado</h3>
                 <div className="patient-details">
-                  <p><strong>Nombre:</strong> {pacienteEncontrado.nombre}</p>
-                  <p><strong>Cédula:</strong> {pacienteEncontrado.documento}</p>
-                  {pacienteEncontrado.tiene_cita && pacienteEncontrado.citas && pacienteEncontrado.citas.length > 0 && (
-                    <div className="cita-info">
-                      <p><strong>⚠️ Tiene citas programadas:</strong></p>
-                      {pacienteEncontrado.citas.map((cita) => (
-                        <div key={cita.id} className="cita-item">
-                          <p>📅 {cita.fecha} - ⏰ {cita.hora}</p>
-                          <p>🏥 {cita.servicio} - {cita.estado}</p>
-                        </div>
-                      ))}
-                    </div>
+                  <p><strong>Nombre:</strong> {getNombreCompleto(pacienteEncontrado)}</p>
+                  <p><strong>Documento:</strong> {tipoDocumento} {pacienteEncontrado.id_paciente}</p>
+                  {pacienteEncontrado.telefono && (
+                    <p><strong>Teléfono:</strong> {pacienteEncontrado.telefono}</p>
                   )}
                 </div>
               </div>
             )}
             
-            <div className="services-grid">
-              {servicios.map((servicio) => (
+            <div className="citas-grid">
+              {citasPaciente.map((cita) => (
                 <button
-                  key={servicio.id}
-                  className="service-button"
-                  onClick={() => seleccionarServicio(servicio)}
+                  key={cita.id_cita}
+                  className="cita-button"
+                  onClick={() => seleccionarCita(cita)}
                 >
-                  <div className="service-icon">🏥</div>
-                  <h3>{servicio.nombre}</h3>
-                  <p>{servicio.descripcion}</p>
-                  <span className="service-time">⏱️ {servicio.tiempo_promedio} min</span>
+                  <div className="cita-icon">📋</div>
+                  <h3>Cita #{cita.id_cita}</h3>
+                  <p><strong>Fecha:</strong> {new Date(cita.fecha_cita).toLocaleDateString()}</p>
+                  {cita.hora_cita && (
+                    <p><strong>Hora:</strong> {cita.hora_cita}</p>
+                  )}
+                  {cita.procedimiento && (
+                    <p><strong>Procedimiento:</strong> {cita.procedimiento}</p>
+                  )}
+                  {cita.estado !== undefined && (
+                    <p><strong>Estado:</strong> {getEstadoCita(cita.estado)}</p>
+                  )}
                 </button>
               ))}
             </div>
@@ -303,19 +283,24 @@ const Kiosco: React.FC = () => {
             <div className="confirmation-card">
               <div className="confirmation-section">
                 <h3>👤 Datos del Paciente</h3>
-                <p><strong>Nombre:</strong> {pacienteEncontrado?.nombre}</p>
-                <p><strong>Cédula:</strong> {pacienteEncontrado?.documento}</p>
+                <p><strong>Nombre:</strong> {pacienteEncontrado && getNombreCompleto(pacienteEncontrado)}</p>
+                <p><strong>Documento:</strong> {tipoDocumento} {pacienteEncontrado?.id_paciente}</p>
               </div>
 
               <div className="confirmation-section">
-                <h3>🏥 Servicio Seleccionado</h3>
-                <p><strong>Servicio:</strong> {selectedServicio?.nombre}</p>
-                <p><strong>Descripción:</strong> {selectedServicio?.descripcion}</p>
-                <p><strong>Tiempo estimado:</strong> {selectedServicio?.tiempo_promedio} minutos</p>
+                <h3>📅 Cita Seleccionada</h3>
+                <p><strong>Cita #:</strong> {citaSeleccionada?.id_cita}</p>
+                <p><strong>Fecha:</strong> {citaSeleccionada && new Date(citaSeleccionada.fecha_cita).toLocaleDateString()}</p>
+                {citaSeleccionada?.hora_cita && (
+                  <p><strong>Hora:</strong> {citaSeleccionada.hora_cita}</p>
+                )}
+                {citaSeleccionada?.procedimiento && (
+                  <p><strong>Procedimiento:</strong> {citaSeleccionada.procedimiento}</p>
+                )}
               </div>
 
               <div className="button-group">
-                <button className="btn-secondary" onClick={volverAServicios}>
+                <button className="btn-secondary" onClick={volverACitas}>
                   🔙 Volver
                 </button>
                 <button 
@@ -340,12 +325,12 @@ const Kiosco: React.FC = () => {
               <div className="turno-info">
                 <div className="turno-numero">
                   <span className="numero-label">Su número de turno es:</span>
-                  <span className="numero-value">#{turnoAsignado?.numero}</span>
+                  <span className="numero-value">{turnoAsignado?.numero_turno}</span>
                 </div>
                 
                 <div className="turno-details">
-                  <p><strong>Paciente:</strong> {pacienteEncontrado?.nombre}</p>
-                  <p><strong>Servicio:</strong> {selectedServicio?.nombre}</p>
+                  <p><strong>Paciente:</strong> {pacienteEncontrado && getNombreCompleto(pacienteEncontrado)}</p>
+                  <p><strong>Cita #:</strong> {citaSeleccionada?.id_cita}</p>
                   <p><strong>Fecha:</strong> {new Date().toLocaleDateString()}</p>
                   <p><strong>Hora:</strong> {new Date().toLocaleTimeString()}</p>
                 </div>
@@ -356,7 +341,7 @@ const Kiosco: React.FC = () => {
                 <ul>
                   <li>Espere a que su número sea llamado</li>
                   <li>Manténgase cerca del área de atención</li>
-                  <li>Tiempo estimado de espera: {selectedServicio?.tiempo_promedio} minutos</li>
+                  <li>Presente su documento cuando sea llamado</li>
                 </ul>
               </div>
 
