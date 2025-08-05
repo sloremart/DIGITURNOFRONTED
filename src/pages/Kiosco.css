@@ -1,0 +1,589 @@
+.kiosco-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.kiosco-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  min-height: 90vh;
+}
+
+/* Header */
+.kiosco-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.kiosco-header h1 {
+  font-size: 4rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.kiosco-header p {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  padding: 30px 20px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 30px;
+  position: relative;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 25px;
+  right: -45px;
+  width: 30px;
+  height: 3px;
+  background: #dee2e6;
+}
+
+.step.active:not(:last-child)::after {
+  background: #667eea;
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #dee2e6;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+}
+
+.step-text {
+  font-size: 1.1rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.step.active .step-text {
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Message Display */
+.kiosco-message {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.kiosco-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+}
+
+/* Step Content */
+.step-content {
+  padding: 40px;
+  min-height: 500px;
+}
+
+.step-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.step-header h2 {
+  font-size: 3rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.step-header p {
+  font-size: 1.5rem;
+  color: #7f8c8d;
+}
+
+/* Services Grid */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.service-button {
+  background: white;
+  border: 3px solid #e9ecef;
+  border-radius: 25px;
+  padding: 40px 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.service-button:hover {
+  border-color: #667eea;
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+}
+
+.service-button:active {
+  transform: translateY(-2px);
+}
+
+.service-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.service-button h3 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.service-button p {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.service-time {
+  font-size: 1.3rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Data Form */
+.data-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 30px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.kiosco-input {
+  width: 100%;
+  padding: 20px;
+  border: 3px solid #e9ecef;
+  border-radius: 15px;
+  font-size: 1.3rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.kiosco-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.1);
+}
+
+.kiosco-input::placeholder {
+  color: #adb5bd;
+}
+
+/* Selected Service Info */
+.selected-service-info {
+  background: #f8f9fa;
+  border-radius: 20px;
+  padding: 30px;
+  margin: 30px 0;
+  border: 2px solid #e9ecef;
+}
+
+.selected-service-info h3 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.service-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  border: 2px solid #667eea;
+}
+
+.service-card .service-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.service-card h4 {
+  font-size: 1.6rem;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.service-card p {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  margin-bottom: 15px;
+}
+
+.service-card .service-time {
+  font-size: 1.2rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Button Groups */
+.button-group {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(108, 117, 125, 0.4);
+}
+
+/* Confirmation Card */
+.confirmation-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  border-radius: 25px;
+  padding: 40px;
+  border: 2px solid #e9ecef;
+}
+
+.confirmation-section {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+  border-left: 5px solid #667eea;
+}
+
+.confirmation-section h3 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.confirmation-section p {
+  font-size: 1.3rem;
+  color: #7f8c8d;
+  margin: 8px 0;
+}
+
+/* Success Card */
+.success-card {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-radius: 25px;
+  padding: 50px 40px;
+  border: 3px solid #27ae60;
+}
+
+.success-icon {
+  font-size: 6rem;
+  margin-bottom: 20px;
+}
+
+.success-card h2 {
+  font-size: 3rem;
+  color: #155724;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+
+.turno-info {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin: 30px 0;
+  border: 2px solid #27ae60;
+}
+
+.turno-numero {
+  margin-bottom: 25px;
+}
+
+.numero-label {
+  display: block;
+  font-size: 1.5rem;
+  color: #7f8c8d;
+  margin-bottom: 10px;
+}
+
+.numero-value {
+  display: block;
+  font-size: 4rem;
+  font-weight: bold;
+  color: #667eea;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.turno-details {
+  text-align: left;
+}
+
+.turno-details p {
+  font-size: 1.3rem;
+  color: #2c3e50;
+  margin: 10px 0;
+}
+
+.instructions {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin: 30px 0;
+  text-align: left;
+}
+
+.instructions h3 {
+  font-size: 1.6rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.instructions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.instructions li {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  margin: 10px 0;
+  padding-left: 25px;
+  position: relative;
+}
+
+.instructions li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #27ae60;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .services-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .kiosco-page {
+    padding: 10px;
+  }
+
+  .kiosco-container {
+    border-radius: 20px;
+  }
+
+  .kiosco-header h1 {
+    font-size: 3rem;
+  }
+
+  .kiosco-header p {
+    font-size: 1.2rem;
+  }
+
+  .step-indicator {
+    padding: 20px 10px;
+  }
+
+  .step {
+    margin: 0 15px;
+  }
+
+  .step:not(:last-child)::after {
+    right: -30px;
+    width: 20px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .step-text {
+    font-size: 0.9rem;
+  }
+
+  .step-content {
+    padding: 20px;
+  }
+
+  .step-header h2 {
+    font-size: 2.5rem;
+  }
+
+  .step-header p {
+    font-size: 1.2rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .service-button {
+    padding: 30px 20px;
+    min-height: 150px;
+  }
+
+  .service-button h3 {
+    font-size: 1.6rem;
+  }
+
+  .service-button p {
+    font-size: 1rem;
+  }
+
+  .kiosco-input {
+    padding: 15px;
+    font-size: 1.1rem;
+  }
+
+  .form-group label {
+    font-size: 1.3rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    min-width: 150px;
+  }
+
+  .button-group {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .success-card {
+    padding: 30px 20px;
+  }
+
+  .success-card h2 {
+    font-size: 2.5rem;
+  }
+
+  .numero-value {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .kiosco-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .step-header h2 {
+    font-size: 2rem;
+  }
+
+  .service-button {
+    padding: 25px 15px;
+  }
+
+  .service-button h3 {
+    font-size: 1.4rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    min-width: 120px;
+  }
+} 

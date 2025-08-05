@@ -75,13 +75,13 @@ const Home: React.FC = () => {
             Sistema inteligente para optimizar la atención al cliente.
           </p>
           <div className="hero-actions">
-            <Link to="/turnos" className="btn-primary">
+            <Link to="/kiosco" className="btn-primary">
               <span className="btn-icon">🎫</span>
               Tomar Turno
             </Link>
-            <Link to="/servicios" className="btn-secondary">
+            <Link to="/turnos" className="btn-secondary">
               <span className="btn-icon">📋</span>
-              Ver Servicios
+              Gestionar Turnos
             </Link>
           </div>
         </div>
@@ -113,15 +113,15 @@ const Home: React.FC = () => {
       <section className="quick-actions">
         <h2 className="section-title">Acciones Rápidas</h2>
         <div className="actions-grid">
-          <Link to="/turnos/nuevo" className="action-card">
-            <div className="action-icon">➕</div>
-            <h3>Nuevo Turno</h3>
-            <p>Crear un nuevo turno para cualquier servicio disponible</p>
+          <Link to="/kiosco" className="action-card">
+            <div className="action-icon">🎫</div>
+            <h3>Kiosco de Turnos</h3>
+            <p>Interfaz táctil para que los pacientes tomen turnos por sí mismos</p>
           </Link>
           <Link to="/turnos" className="action-card">
             <div className="action-icon">📋</div>
-            <h3>Ver Turnos</h3>
-            <p>Consulta el estado de todos los turnos activos</p>
+            <h3>Gestionar Turnos</h3>
+            <p>Panel de administración para gestionar turnos y pacientes</p>
           </Link>
           <Link to="/servicios" className="action-card">
             <div className="action-icon">⚙️</div>
