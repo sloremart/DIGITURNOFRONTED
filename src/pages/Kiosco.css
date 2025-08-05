@@ -114,6 +114,12 @@
   border: 2px solid #f5c6cb;
 }
 
+.kiosco-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 2px solid #c3e6cb;
+}
+
 /* Step Content */
 .step-content {
   padding: 40px;
@@ -231,6 +237,56 @@
 
 .kiosco-input::placeholder {
   color: #adb5bd;
+}
+
+/* Patient Info Display */
+.patient-info-display {
+  background: #e8f5e8;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  border-left: 5px solid #27ae60;
+}
+
+.patient-info-display h3 {
+  font-size: 1.8rem;
+  color: #27ae60;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.patient-details p {
+  font-size: 1.3rem;
+  color: #2c3e50;
+  margin: 10px 0;
+}
+
+.cita-info {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 2px solid #ffc107;
+}
+
+.cita-info p {
+  font-size: 1.2rem;
+  color: #856404;
+  margin: 5px 0;
+}
+
+.cita-item {
+  background: #fff3cd;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px 0;
+  border-left: 4px solid #ffc107;
+}
+
+.cita-item p {
+  font-size: 1.1rem;
+  color: #856404;
+  margin: 5px 0;
 }
 
 /* Selected Service Info */
