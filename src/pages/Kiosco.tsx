@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { digiturnoService } from '../services/api';
 import { TurnoResponse, Paciente, Cita } from '../types';
 import { PrinterService } from '../services/printerService';
-import TicketPrinter from '../components/TicketPrinter';
+// TicketPrinter removido - impresión automática implementada
 import './Kiosco.css';
 
 const Kiosco: React.FC = () => {
@@ -61,23 +61,33 @@ const Kiosco: React.FC = () => {
     if (esFacturacion) {
       try {
         const response = await digiturnoService.buscarPaciente(tipoDocumento!, numeroDocumento);
-        setPacienteEncontrado(response.paciente || null);
+        const paciente = response.paciente || null;
+        setPacienteEncontrado(paciente);
         
         // Las citas ya vienen en la respuesta del endpoint buscar-paciente
-        if (response.citas) {
+        if (response.citas && Array.isArray(response.citas)) {
           setCitasPaciente(response.citas);
           
           if (response.citas.length === 0) {
             setMessage('El paciente no tiene citas programadas para hoy');
+            setLoading(false);
             return;
           }
+          
+          // Si encontró paciente con citas, asignar turno automáticamente
+          // Usar los datos directamente en lugar de depender del estado
+          console.log('✅ Paciente encontrado con citas, asignando turno automáticamente...');
+          await asignarTurnoConDatos(paciente, response.citas);
+          return; // asignarTurnoConDatos maneja el loading
+        } else {
+          // Si no hay citas pero sí paciente, mostrar mensaje
+          setMessage('El paciente no tiene citas programadas para hoy');
+          setLoading(false);
+          return;
         }
-
-        setStep('confirmacion');
       } catch (error) {
         console.error('Error buscando paciente:', error);
         setMessage('Paciente no encontrado. Verifique el número de documento.');
-      } finally {
         setLoading(false);
       }
     } else {
@@ -162,17 +172,20 @@ const Kiosco: React.FC = () => {
     }
   };
 
-  const asignarTurno = async () => {
-    if (!pacienteEncontrado) {
+  // Función auxiliar que acepta datos directamente para evitar problemas de estado
+  const asignarTurnoConDatos = async (paciente: Paciente | null, citas: Cita[]) => {
+    if (!paciente) {
       setMessage('Faltan datos para asignar el turno');
+      setLoading(false);
       return;
     }
 
     // Validar citas solo para facturación o preferencial para facturación
     if ((servicioSeleccionado === 'facturacion' || 
          (servicioSeleccionado === 'preferencial' && tipoPreferencial === 'facturacion')) && 
-        citasPaciente.length === 0) {
+        citas.length === 0) {
       setMessage('El paciente no tiene citas programadas para facturación');
+      setLoading(false);
       return;
     }
 
@@ -185,9 +198,9 @@ const Kiosco: React.FC = () => {
       if (servicioSeleccionado === 'preferencial' && tipoPreferencial === 'facturacion') {
         // Para turnos preferenciales PARA FACTURACIÓN - usar endpoint de facturación
         console.log('🚀 KIOSCO: Usando fetch directo para preferencial-facturación');
-        const primeraCita = citasPaciente[0];
+        const primeraCita = citas[0];
         const requestData = {
-          numero_paciente: pacienteEncontrado.numero_paciente,
+          numero_paciente: paciente.numero_paciente,
           id_cita: primeraCita.id_cita,
           modulo: "PREFERENCIAL",
           es_preferencial: true,
@@ -214,9 +227,9 @@ const Kiosco: React.FC = () => {
           motivoPreferencial
         );
       } else if (servicioSeleccionado === 'facturacion') {
-        const primeraCita = citasPaciente[0];
+        const primeraCita = citas[0];
         turno = await digiturnoService.asignarTurnoFacturacion(
-          pacienteEncontrado.numero_paciente,
+          paciente.numero_paciente,
           primeraCita.id_cita
         );
       } else if (servicioSeleccionado === 'asignacion') {
@@ -262,6 +275,11 @@ const Kiosco: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const asignarTurno = async () => {
+    // Usar el estado actual para compatibilidad con el botón de confirmación
+    await asignarTurnoConDatos(pacienteEncontrado, citasPaciente);
   };
 
   const reiniciar = () => {

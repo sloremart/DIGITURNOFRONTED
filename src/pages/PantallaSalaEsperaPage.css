@@ -97,15 +97,79 @@
 /* Contenido Principal */
 .pantalla-content {
   padding: 40px;
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
 }
 
+/* Layout de dos columnas: Turnos y Video */
+.pantalla-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
 /* Sección de Turnos */
 .turnos-section {
   margin-bottom: 40px;
+  min-height: 400px;
+}
+
+/* Sección de Video */
+.video-section {
+  position: sticky;
+  top: 40px;
+  height: fit-content;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.sala-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 600px;
+  object-fit: cover;
+}
+
+.video-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+  padding: 30px 20px 20px;
+  pointer-events: none;
+}
+
+.video-info {
+  color: white;
+  text-align: center;
+}
+
+.video-info h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.video-info p {
+  font-size: 1.2rem;
+  margin: 0;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .section-title {
@@ -320,6 +384,23 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .pantalla-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .video-section {
+    position: relative;
+    top: 0;
+    order: -1; /* Video arriba en móviles */
+  }
+  
+  .sala-video {
+    max-height: 400px;
+  }
+}
+
 @media (max-width: 768px) {
   .pantalla-header {
     flex-direction: column;
@@ -337,6 +418,10 @@
   
   .pantalla-content {
     padding: 20px;
+  }
+  
+  .pantalla-layout {
+    gap: 20px;
   }
   
   .turnos-grid {
@@ -364,6 +449,18 @@
   
   .numero {
     font-size: 2rem;
+  }
+  
+  .sala-video {
+    max-height: 300px;
+  }
+  
+  .video-info h3 {
+    font-size: 1.5rem;
+  }
+  
+  .video-info p {
+    font-size: 1rem;
   }
   
   /* .pantalla-sala-espera::before {

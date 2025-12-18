@@ -9,12 +9,20 @@ const PantallaSalaEsperaPage: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [turnosAnteriores, setTurnosAnteriores] = useState<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     cargarTurnos();
     
     // Auto-refresh cada 10 segundos para mantener la pantalla actualizada
     const interval = setInterval(cargarTurnos, 10000);
+    
+    // Configurar video para reproducir automáticamente en loop
+    if (videoRef.current) {
+      videoRef.current.play().catch((error) => {
+        console.log('Video no pudo reproducirse automáticamente:', error);
+      });
+    }
     
     return () => clearInterval(interval);
   }, []);
@@ -151,55 +159,82 @@ const PantallaSalaEsperaPage: React.FC = () => {
 
       {/* Contenido Principal */}
       <div className="pantalla-content">
-        {/* Turnos Llamados */}
-        <div className="turnos-section">
-          <h2 className="section-title">
-            📢 Turnos Llamados ({turnosLlamados.length})
-          </h2>
-          
-          {loading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Actualizando turnos...</p>
-            </div>
-          ) : turnosLlamados.length > 0 ? (
-            <div className="turnos-grid">
-              {turnosLlamados.map(turno => (
-                <div 
-                  key={`${turno.numero_turno}-${turno.estado}`} 
-                  className={`turno-container ${esTurnoNuevo(turno) ? 'nuevo' : ''}`}
-                >
-                                     {/* Card Izquierda - Módulo */}
-                   <div className="modulo-card">
-                     <div className="modulo-titulo">MÓDULO</div>
-                     <div className="modulo-nombre">{getNombreModulo(turno)}</div>
-                   </div>
-
-                  {/* Card Derecha - Turno y Nombre */}
-                  <div className="turno-card">
-                    <div className="turno-numero">
-                      <span className="numero">TURNO {turno.numero_turno}</span>
+        {/* Layout de dos columnas: Turnos y Video */}
+        <div className="pantalla-layout">
+          {/* Columna Izquierda: Turnos Llamados */}
+          <div className="turnos-section">
+            <h2 className="section-title">
+              📢 Turnos Llamados ({turnosLlamados.length})
+            </h2>
+            
+            {loading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Actualizando turnos...</p>
+              </div>
+            ) : turnosLlamados.length > 0 ? (
+              <div className="turnos-grid">
+                {turnosLlamados.map(turno => (
+                  <div 
+                    key={`${turno.numero_turno}-${turno.estado}`} 
+                    className={`turno-container ${esTurnoNuevo(turno) ? 'nuevo' : ''}`}
+                  >
+                    {/* Card Izquierda - Módulo */}
+                    <div className="modulo-card">
+                      <div className="modulo-titulo">MÓDULO</div>
+                      <div className="modulo-nombre">{getNombreModulo(turno)}</div>
                     </div>
 
-                    {/* Nombre del Paciente (solo para facturación) */}
-                    {turno.modulo === 'FACTURACION' && turno.nombre_paciente && (
-                      <div className="nombre-paciente">
-                        {turno.nombre_paciente}
+                    {/* Card Derecha - Turno y Nombre */}
+                    <div className="turno-card">
+                      <div className="turno-numero">
+                        <span className="numero">TURNO {turno.numero_turno}</span>
                       </div>
-                    )}
 
-
+                      {/* Nombre del Paciente (solo para facturación) */}
+                      {turno.modulo === 'FACTURACION' && turno.nombre_paciente && (
+                        <div className="nombre-paciente">
+                          {turno.nombre_paciente}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📢</div>
+                <h3>No hay turnos llamados</h3>
+                <p>La pantalla se actualizará automáticamente cuando haya turnos llamados</p>
+              </div>
+            )}
+          </div>
+
+          {/* Columna Derecha: Video */}
+          <div className="video-section">
+            <div className="video-container">
+              <video
+                ref={videoRef}
+                className="sala-video"
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls={false}
+              >
+                <source src="/videos/sala-espera.mp4" type="video/mp4" />
+                <source src="/videos/sala-espera.webm" type="video/webm" />
+                Tu navegador no soporta la reproducción de video.
+              </video>
+              {/* Overlay opcional con información */}
+              <div className="video-overlay">
+                <div className="video-info">
+                  <h3>Neuro DX</h3>
+                  <p>Su salud es nuestra prioridad</p>
                 </div>
-              ))}
+              </div>
             </div>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">📢</div>
-              <h3>No hay turnos llamados</h3>
-              <p>La pantalla se actualizará automáticamente cuando haya turnos llamados</p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 

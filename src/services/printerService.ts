@@ -8,6 +8,7 @@ interface PrinterServiceConfig {
   vendorId?: number;
   productId?: number;
   autoOpen?: boolean;
+  renderMode?: 'text' | 'html';
 }
 
 // Clase para manejar la impresión de turnos
@@ -15,10 +16,12 @@ export class PrinterService {
   private config: PrinterServiceConfig;
 
   constructor(config?: PrinterServiceConfig) {
-    this.config = config || {
+    const defaultConfig: PrinterServiceConfig = {
       type: 'usb',
-      autoOpen: true
+      autoOpen: true,
+      renderMode: 'html'
     };
+    this.config = { ...defaultConfig, ...config };
   }
 
   // Función helper para obtener nombre completo
@@ -28,39 +31,36 @@ export class PrinterService {
     return `${nombres} ${apellidos}`.trim();
   }
 
-  // Generar el contenido del ticket simplificado (9cm x 6cm)
+  // Generar el contenido del ticket simplificado (alineado a la izquierda)
   public generateTicketContent(turno: TurnoResponse, servicio?: string): string {
-    const ticketContent = `
-
-
-${' '.repeat(12)}NEURODX
-
-
-${' '.repeat(4)}Su diagnostico, nuestro compromiso
-
-
-
-${' '.repeat(10)}TURNO ${turno.numero_turno}
-
-
-
-${' '.repeat(2)}Por favor espere el llamado en pantalla
-
-
-
-`;
-    return ticketContent;
+    const lines = [
+      'NEURODX',
+      'Su diagnóstico, nuestro compromiso',
+      '',
+      `TURNO ${turno.numero_turno}`.toUpperCase(),
+      '',
+      'Por favor espere el llamado en pantalla',
+      ''
+    ];
+    return `\n${lines.join('\n')}\n`;
   }
 
   async printTicket(turno: TurnoResponse, servicio?: string): Promise<boolean> {
     try {
-      const ticketContent = this.generateTicketContent(turno, servicio);
+      const ticketContentText = this.formatForPOSPrinter(turno, servicio);
+      const ticketContentHtml = this.generateTicketHTML(turno, servicio);
+      const useHtml = (this.config.renderMode ?? 'html') === 'html';
+      const ticketContent = useHtml ? ticketContentHtml : ticketContentText;
       
-      // Crear una versión con formato optimizado para distribución
-      const formattedContent = this.formatForPOSPrinter(turno, servicio);
-      
+      let primaryResult = false;
+
       // Usar el nuevo endpoint de impresión personalizada
       try {
+        console.log('🖨️ Enviando ticket al backend para impresión...', {
+          numero_turno: turno.numero_turno,
+          contenido_length: ticketContent.length
+        });
+        
         const response = await fetch('http://localhost:8000/printer/print-ticket-custom', {
           method: 'POST',
           headers: {
@@ -68,24 +68,38 @@ ${' '.repeat(2)}Por favor espere el llamado en pantalla
           },
           body: JSON.stringify({
             numero_turno: turno.numero_turno,
-            ticket_content: formattedContent
+            ticket_content: ticketContent,
+            ticket_content_plain: ticketContentText,
+            ticket_format: useHtml ? 'html' : 'text'
           }),
         });
 
+        console.log('📥 Respuesta del backend:', response.status, response.statusText);
+        
         if (response.ok) {
           const printData = await response.json();
+          console.log('📄 Datos de respuesta:', printData);
+          
           if (printData.success) {
-            console.log('✅ Ticket NEURODX impreso exitosamente');
-            return true;
+            console.log('✅ Ticket NEURODX impreso exitosamente desde frontend');
+            primaryResult = true;
           } else {
-            console.error('Error en la respuesta del backend:', printData);
-            // Intentar con formato simple como fallback
-            return await this.trySimpleFormat(turno);
+            console.error('❌ Error en la respuesta del backend:', printData);
+            primaryResult = await this.trySimpleFormat(turno);
           }
+        } else {
+          const errorText = await response.text();
+          console.error('❌ Error HTTP del backend:', response.status, errorText);
+          primaryResult = await this.trySimpleFormat(turno);
         }
       } catch (error) {
-        console.log('Endpoint /printer/print-ticket-custom no disponible, intentando alternativa...');
-        return await this.trySimpleFormat(turno);
+        console.error('❌ Error de conexión con endpoint de impresión:', error);
+        console.log('🔄 Intentando formato simple como fallback...');
+        primaryResult = await this.trySimpleFormat(turno);
+      }
+
+      if (primaryResult) {
+        return true;
       }
 
       // Fallback al endpoint anterior si el nuevo no está disponible
@@ -118,70 +132,118 @@ ${' '.repeat(2)}Por favor espere el llamado en pantalla
     }
   }
 
-  // Método para formatear el contenido específicamente para impresoras POS
+  private readonly POS_WIDTH = 40;
+
+  // Formato para impresoras POS: diseño mejorado y profesional
   private formatForPOSPrinter(turno: TurnoResponse, servicio?: string): string {
-    // Obtener información del paciente si está disponible
-    const pacienteName = turno.paciente ? this.getNombreCompleto(turno.paciente) : '';
-    const citaInfo = turno.cita ? `Cita #${turno.cita.id_cita}` : '';
-    const servicioInfo = servicio ? `Servicio: ${servicio.toUpperCase()}` : '';
-    const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    const fecha = new Date().toLocaleDateString('es-ES');
+    const pacienteName = turno.paciente ? this.getNombreCompleto(turno.paciente) : (turno.nombre_paciente || '');
     
-    // Versión distribuida verticalmente para papel de 9cm x 6cm
-    const content = `
+    // Obtener fecha y hora actual
+    const fechaActual = new Date().toLocaleDateString('es-ES', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+    const horaActual = new Date().toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
 
+    // Determinar nombre del servicio/módulo
+    let nombreServicio = '';
+    if (servicio) {
+      const servicios: { [key: string]: string } = {
+        'facturacion': 'FACTURACIÓN',
+        'asignacion': 'ASIGNACIÓN DE CITAS',
+        'preferencial': 'TURNO PREFERENCIAL'
+      };
+      nombreServicio = servicios[servicio.toLowerCase()] || servicio.toUpperCase();
+    } else if (turno.modulo) {
+      const modulos: { [key: string]: string } = {
+        'FACTURACION': 'FACTURACIÓN',
+        'ASIGNACION_CITA': 'ASIGNACIÓN DE CITAS',
+        'PREFERENCIAL': 'TURNO PREFERENCIAL'
+      };
+      nombreServicio = modulos[turno.modulo] || turno.modulo;
+    }
 
-${' '.repeat(12)}NEURODX
+    // Información adicional
+    const horaCita = turno.cita?.hora_cita || turno.hora_cita || '';
+    const esPreferencial = turno.es_preferencial || false;
+    const motivoPreferencial = turno.motivo_preferencial || '';
 
-
-${' '.repeat(4)}Su diagnostico, nuestro compromiso
-
-
-
-${' '.repeat(10)}TURNO ${turno.numero_turno}
-
-
-${pacienteName ? ' '.repeat(Math.max(0, (32 - pacienteName.length) / 2)) + pacienteName : ''}
-
-${citaInfo ? ' '.repeat(Math.max(0, (32 - citaInfo.length) / 2)) + citaInfo : ''}
-
-${servicioInfo ? ' '.repeat(Math.max(0, (32 - servicioInfo.length) / 2)) + servicioInfo : ''}
-
-
-${' '.repeat(8)}${fecha} - ${hora}
-
-
-${' '.repeat(2)}Por favor espere el llamado en pantalla
-
-
-
-`;
+    const lines: string[] = [];
     
-    return content;
+    // NEURODX centrado
+    lines.push('[CENTER]NEURODX[/CENTER]');
+    
+    // Slogan centrado
+    lines.push('[CENTER]Su diagnóstico, nuestro compromiso[/CENTER]');
+    lines.push('');
+    
+    // FACTURACIÓN centrado (si existe)
+    if (nombreServicio) {
+      lines.push(`[CENTER]${nombreServicio}[/CENTER]`);
+      lines.push('');
+    }
+    
+    // TURNO destacado (el más grande)
+    lines.push(`[CENTER]TURNO ${turno.numero_turno}[/CENTER]`);
+    lines.push('');
+    
+    // Información del paciente (solo si está disponible)
+    if (pacienteName) {
+      lines.push(pacienteName);
+      lines.push('');
+    }
+    
+    // SOLO fecha y hora actual (sin "Hora Cita")
+    lines.push(`${fechaActual} - ${horaActual}`);
+    lines.push('');
+    
+    // Instrucción
+    lines.push('Por favor espere el llamado en pantalla');
+    lines.push('');
+
+    return `\n${lines.join('\n')}\n`;
+  }
+
+  private wrapText(text: string | undefined, width: number = this.POS_WIDTH): string[] {
+    if (!text) return [];
+    const words = text.split(/\s+/).filter(Boolean);
+    const result: string[] = [];
+    let current = '';
+
+    for (const word of words) {
+      const next = current ? `${current} ${word}` : word;
+      if (next.length > width) {
+        if (current) result.push(current);
+        if (word.length > width) {
+          result.push(word);
+          current = '';
+        } else {
+          current = word;
+        }
+      } else {
+        current = next;
+      }
+    }
+
+    if (current) result.push(current);
+    return result;
+  }
+
+  private emphasizeTurnLine(numeroTurno: string | number): string {
+    const text = `TURNO ${numeroTurno}`.toUpperCase();
+    if (text.length >= this.POS_WIDTH) {
+      return text;
+    }
+    return `${text}${' '.repeat(this.POS_WIDTH - text.length)}`;
   }
 
   // Método alternativo con formato más simple para mejor compatibilidad
   private formatSimpleForPOS(turno: TurnoResponse): string {
-    const content = `
-
-
-${' '.repeat(12)}NEURODX
-
-
-${' '.repeat(4)}Su diagnostico, nuestro compromiso
-
-
-
-${' '.repeat(10)}TURNO ${turno.numero_turno}
-
-
-
-${' '.repeat(2)}Por favor espere el llamado en pantalla
-
-
-
-`;
-    return content;
+    return this.generateTicketContent(turno);
   }
 
   // Método para intentar con formato simple como fallback
@@ -244,13 +306,44 @@ ${' '.repeat(2)}Por favor espere el llamado en pantalla
     }
   }
 
-  // Generar HTML del ticket para visualización
-  public generateTicketHTML(turno: TurnoResponse): string {
-    const pacienteName = turno.paciente ? this.getNombreCompleto(turno.paciente) : '';
-    const citaInfo = turno.cita ? `Cita #${turno.cita.id_cita}` : '';
-    const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    const fecha = new Date().toLocaleDateString('es-ES');
+  // Generar HTML del ticket para visualización - Diseño mejorado
+  public generateTicketHTML(turno: TurnoResponse, servicio?: string): string {
+    const pacienteName = turno.paciente ? this.getNombreCompleto(turno.paciente) : (turno.nombre_paciente || '');
     
+    // Obtener fecha y hora actual
+    const fechaActual = new Date().toLocaleDateString('es-ES', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+    const horaActual = new Date().toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    // Determinar nombre del servicio/módulo
+    let nombreServicio = '';
+    if (servicio) {
+      const servicios: { [key: string]: string } = {
+        'facturacion': 'FACTURACIÓN',
+        'asignacion': 'ASIGNACIÓN DE CITAS',
+        'preferencial': 'TURNO PREFERENCIAL'
+      };
+      nombreServicio = servicios[servicio.toLowerCase()] || servicio.toUpperCase();
+    } else if (turno.modulo) {
+      const modulos: { [key: string]: string } = {
+        'FACTURACION': 'FACTURACIÓN',
+        'ASIGNACION_CITA': 'ASIGNACIÓN DE CITAS',
+        'PREFERENCIAL': 'TURNO PREFERENCIAL'
+      };
+      nombreServicio = modulos[turno.modulo] || turno.modulo;
+    }
+
+    // Información adicional
+    const horaCita = turno.cita?.hora_cita || turno.hora_cita || '';
+    const esPreferencial = turno.es_preferencial || false;
+    const motivoPreferencial = turno.motivo_preferencial || '';
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -259,61 +352,143 @@ ${' '.repeat(2)}Por favor espere el llamado en pantalla
     <title>Ticket Turno ${turno.numero_turno}</title>
     <style>
         @page {
-            size: 9cm 6cm;
-            margin: 0.2cm;
+            size: 80mm auto;
+            margin: 0mm;
+            padding: 0mm;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 80mm;
+            min-height: auto;
         }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 0.2cm;
+            padding: 0.4cm 0.25cm;
             background: white;
-            width: 8.6cm;
-            height: 5.6cm;
+            width: 78mm;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            text-align: center;
-            line-height: 1.1;
+            align-items: center;
+            justify-content: flex-start;
+            line-height: 1.5;
+            transform-origin: top left;
+            transform: scale(1);
         }
-        .logo {
-            font-size: 16px;
+        .separator {
+            width: 100%;
+            height: 1px;
+            background: #000;
+            margin: 0.1cm 0;
+            border: none;
+        }
+        .logo-text {
+            font-size: 18px;
             font-weight: bold;
-            margin: 0 0 0.1cm 0;
+            margin: 0.1cm 0 0.05cm 0;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
         }
         .slogan {
+            font-size: 7px;
+            margin: 0 0 0.1cm 0;
+            text-align: center;
+            color: #333;
+            font-style: normal;
+            letter-spacing: 0.3px;
+            font-weight: normal;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .servicio {
             font-size: 9px;
-            margin: 0 0 0.4cm 0;
+            font-weight: bold;
+            margin: 0.1cm 0;
+            text-align: center;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
         }
         .turno-number {
-            font-size: 28px;
+            font-size: 48px;
             font-weight: bold;
-            margin: 0.3cm 0;
-            letter-spacing: 1px;
-        }
-        .info-section {
-            font-size: 10px;
             margin: 0.2cm 0;
+            letter-spacing: 4px;
+            text-align: center;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.2;
         }
-        .date-time {
+        .preferencial {
             font-size: 8px;
-            margin: 0.2cm 0;
+            font-weight: bold;
+            margin: 0.05cm 0;
+            text-align: center;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .info-line {
+            font-size: 11px;
+            margin: 0.08cm 0;
+            text-align: left;
+            width: 100%;
+            padding-left: 0.1cm;
+            color: #000;
+            font-weight: normal;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .info-label {
+            font-weight: bold;
         }
         .instructions {
-            font-size: 11px;
-            margin: 0.4cm 0 0 0;
-            line-height: 1.2;
+            font-size: 10px;
+            margin: 0.1cm 0 0 0;
+            line-height: 1.4;
+            text-align: left;
+            width: 100%;
+            padding-left: 0.1cm;
+            color: #000;
+            font-style: normal;
+            font-weight: normal;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .separator-line {
+            width: 100%;
+            border-top: 1px dashed #666;
+            margin: 0.08cm 0;
+        }
+        .thanks {
+            font-size: 8px;
+            margin: 0.08cm 0;
+            text-align: center;
+            color: #000;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
         }
     </style>
 </head>
 <body>
-    <div class="logo">NEURODX</div>
-    <div class="slogan">Su diagnostico, nuestro compromiso</div>
+    <div class="separator"></div>
+    <div class="logo-text">NEURODX</div>
+    <div class="slogan">Su diagnóstico, nuestro compromiso</div>
+    <div class="separator"></div>
+    ${nombreServicio ? `<div class="servicio">${nombreServicio}</div>` : ''}
     <div class="turno-number">TURNO ${turno.numero_turno}</div>
-    ${pacienteName ? `<div class="info-section">${pacienteName}</div>` : ''}
-    ${citaInfo ? `<div class="info-section">${citaInfo}</div>` : ''}
-    <div class="date-time">${fecha} - ${hora}</div>
-    <div class="instructions">Por favor espere el llamado en pantalla</div>
+    ${esPreferencial ? `<div class="preferencial">* TURNO PREFERENCIAL *</div>` : ''}
+    ${esPreferencial && motivoPreferencial ? `<div class="preferencial">(${motivoPreferencial})</div>` : ''}
+    ${pacienteName ? `<div class="info-line"><span class="info-label">Paciente:</span> ${pacienteName}</div>` : ''}
+    <div class="info-line">${fechaActual} - ${horaActual}</div>
+    <div class="separator-line"></div>
+    <div class="instructions">Por favor espere ser llamado<br>en la pantalla de facturación</div>
+    <div class="thanks">¡Gracias por su paciencia!</div>
+    <div class="separator"></div>
 </body>
 </html>`;
     return htmlContent;
@@ -324,7 +499,10 @@ ${' '.repeat(2)}Por favor espere el llamado en pantalla
     const ticketContent = this.generateTicketContent(turno);
     
     // Aquí podrías usar una librería como jsPDF para generar PDF
-    console.log('📄 Generando PDF del ticket...');
+    console.log('📄 Generando PDF del ticket...', {
+      numero_turno: turno.numero_turno,
+      longitud_contenido: ticketContent.length
+    });
     
     // Retornar URL del PDF generado
     return `/tickets/${turno.numero_turno}.pdf`;
@@ -334,7 +512,8 @@ ${' '.repeat(2)}Por favor espere el llamado en pantalla
 // Configuración por defecto
 const defaultConfig: PrinterServiceConfig = {
   type: 'usb',
-  autoOpen: true
+  autoOpen: true,
+  renderMode: 'html'
 };
 
 // Instancia por defecto del servicio
