@@ -1,0 +1,433 @@
+.ticket-printer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.ticket-printer-modal {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ticket-printer-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 30px;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticket-printer-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.ticket-content {
+  padding: 30px;
+  background: #f8f9fa;
+}
+
+.ticket-header {
+  text-align: center;
+  margin-bottom: 25px;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-header h3 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.ticket-header p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.ticket-info {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.ticket-number {
+  text-align: center;
+  margin-bottom: 25px;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.ticket-number .value {
+  display: block;
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.patient-info,
+.appointment-info,
+.assignment-info,
+.instructions {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.patient-info h4,
+.appointment-info h4,
+.assignment-info h4,
+.instructions h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.patient-info p,
+.appointment-info p,
+.assignment-info p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.instructions p {
+  margin: 10px 0;
+  font-size: 1.2rem;
+  color: #555;
+  text-align: center;
+  font-weight: 500;
+}
+
+.ticket-footer {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-radius: 15px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.print-actions {
+  padding: 25px 30px;
+  background: white;
+  border-radius: 0 0 20px 20px;
+}
+
+.print-status {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.print-status.loading {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.print-status.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.print-status.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.print-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.btn-print-pos,
+.btn-print-browser,
+.btn-generate-pdf,
+.btn-config,
+.btn-close {
+  padding: 15px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-print-pos {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  grid-column: 1 / -1;
+}
+
+.btn-print-pos:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-print-browser {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-print-browser:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-generate-pdf {
+  background: linear-gradient(135deg, #fd7e14 0%, #ff6b35 100%);
+  color: white;
+}
+
+.btn-generate-pdf:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(253, 126, 20, 0.4);
+}
+
+.btn-config {
+  background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+  color: white;
+}
+
+.btn-config:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(111, 66, 193, 0.4);
+}
+
+.btn-close {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-close:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.btn-print-pos:disabled,
+.btn-print-browser:disabled,
+.btn-generate-pdf:disabled,
+.btn-config:disabled,
+.btn-close:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Estilos para impresión */
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 9cm !important;
+    height: 6cm !important;
+    font-family: Arial, sans-serif !important;
+    overflow: hidden !important;
+  }
+  
+  @page {
+    size: 9cm 6cm !important;
+    margin: 0.2cm !important;
+  }
+  
+  * {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    background: white !important;
+    color: black !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  
+  .ticket-printer-overlay {
+    position: static !important;
+    background: white !important;
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    backdrop-filter: none !important;
+  }
+  
+  .ticket-printer-modal {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    animation: none !important;
+  }
+  
+  .ticket-printer-header,
+  .print-actions {
+    display: none !important;
+  }
+  
+  .ticket-content {
+    padding: 0.2cm !important;
+    width: 8.6cm !important;
+    height: 5.6cm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    text-align: center !important;
+    background: white !important;
+  }
+  
+  .ticket-header {
+    margin-bottom: 0.4cm !important;
+    padding: 0 !important;
+  }
+  
+  .ticket-header h3 {
+    font-size: 16px !important;
+    font-weight: bold !important;
+    margin: 0 0 0.1cm 0 !important;
+    padding: 0 !important;
+  }
+  
+  .ticket-header p {
+    font-size: 9px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .ticket-info {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .ticket-number {
+    text-align: center !important;
+    margin: 0.3cm 0 !important;
+    padding: 0 !important;
+  }
+  
+  .ticket-number .value {
+    font-size: 28px !important;
+    font-weight: bold !important;
+    letter-spacing: 1px !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+  
+  .instructions {
+    margin: 0.4cm 0 0 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+  }
+  
+  .instructions p {
+    font-size: 11px !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ticket-printer-modal {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .ticket-printer-header {
+    padding: 15px 20px;
+  }
+  
+  .ticket-printer-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .ticket-content {
+    padding: 20px;
+  }
+  
+  .ticket-number .value {
+    font-size: 2rem;
+  }
+  
+  .print-buttons {
+    grid-template-columns: 1fr;
+  }
+} 

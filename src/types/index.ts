@@ -70,9 +70,17 @@ export interface Cita {
 export interface TurnoResponse {
   numero_turno: string;
   hora_asignacion: string;
-  paciente: Paciente;
-  cita: Cita;
+  es_preferencial: boolean;
+  motivo_preferencial?: string;
+  prioridad: number;
+  sede: string;
+  modulo: string;
+  nombre_paciente: string;
   estado: string;
+  tipo_operador?: string;
+  hora_cita?: string;
+  paciente?: Paciente;
+  cita?: Cita;
 }
 
 // Request types for the backend
@@ -84,28 +92,70 @@ export interface BuscarPacienteRequest {
 export interface AsignarTurnoRequest {
   numero_paciente: number;
   id_cita: number;
+  es_preferencial?: boolean;
+  motivo_preferencial?: string;
 }
 
 // Response types for the backend
 export interface BuscarPacienteResponse {
-  mensaje: string;
-  datos?: {
-    paciente: Paciente;
-    citas: Cita[];
-  };
+  success: boolean;
+  paciente?: Paciente;
+  citas?: Cita[];
+  tiene_citas_hoy?: boolean;
+  mensaje?: string;
 }
 
 export interface AsignarTurnoResponse {
-  mensaje: string;
-  datos?: TurnoResponse;
+  success: boolean;
+  turno?: TurnoResponse;
+  mensaje?: string;
 }
 
 export interface TurnosActivosResponse {
-  mensaje: string;
+  success: boolean;
   datos?: TurnoResponse[];
+  mensaje?: string;
 }
 
 export interface TiposDocumentoResponse {
-  mensaje: string;
-  datos?: string[];
+  success: boolean;
+  tipos?: Array<{codigo: string; nombre: string}>;
+  mensaje?: string;
+}
+
+export interface MotivosPreferencialesResponse {
+  success: boolean;
+  motivos?: Array<{codigo: string; nombre: string}>;
+  mensaje?: string;
+}
+
+export interface Sucursal {
+  id: number;
+  nombre: string;
+  direccion?: string;
+  activa: boolean;
+}
+
+export interface SucursalesResponse {
+  success: boolean;
+  sucursales?: Sucursal[];
+  mensaje?: string;
+}
+
+export interface BuscarCitasResponse {
+  success: boolean;
+  citas?: Cita[];
+  mensaje?: string;
+}
+
+export interface EstadisticasResponse {
+  success: boolean;
+  estadisticas?: {
+    total_turnos: number;
+    turnos_preferenciales: number;
+    turnos_facturacion: number;
+    turnos_asignacion_cita: number;
+    turnos_hoy: number;
+  };
+  mensaje?: string;
 } 

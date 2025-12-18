@@ -1,0 +1,7 @@
+.llamados-completo-page {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Mantiene el estilo por defecto del componente */

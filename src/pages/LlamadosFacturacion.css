@@ -1,0 +1,29 @@
+.llamados-facturacion-page {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Personalizaciones específicas para facturación */
+.llamados-facturacion-page .pantalla-llamados {
+  background: linear-gradient(135deg, #2d5a27 0%, #40a838 100%);
+}
+
+.llamados-facturacion-page .titulo-principal {
+  color: #e8f5e8;
+}
+
+.llamados-facturacion-page .contador-numero {
+  color: #90ee90;
+}
+
+.llamados-facturacion-page .turno-numero-grande {
+  color: #2d5a27;
+  border-color: #2d5a27;
+}
+
+.llamados-facturacion-page .destino-principal .destino {
+  background: linear-gradient(135deg, #f0fff0 0%, #d4edda 100%);
+  border-color: #28a745;
+  color: #155724;
+}

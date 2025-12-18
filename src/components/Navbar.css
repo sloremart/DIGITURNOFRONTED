@@ -29,18 +29,18 @@
   font-size: 1.5rem;
   font-weight: bold;
   transition: transform 0.3s ease;
+  gap: 15px;
 }
 
 .navbar-logo:hover {
   transform: scale(1.05);
 }
 
-.logo-icon {
-  font-size: 2rem;
-  margin-right: 10px;
-}
-
-.logo-text {
+.navbar-subtitle {
+  font-size: 0.9rem;
+  font-weight: normal;
+  opacity: 0.9;
+  margin-left: 10px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -116,7 +116,7 @@
     font-size: 0.9rem;
   }
   
-  .logo-text {
+  .navbar-subtitle {
     display: none;
   }
   

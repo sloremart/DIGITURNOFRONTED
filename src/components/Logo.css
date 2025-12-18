@@ -1,0 +1,126 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: bold;
+  font-family: 'Arial', sans-serif;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  animation: pulse 2s infinite;
+}
+
+.logo-image {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.logo-text {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.logo-primary {
+  color: #2c3e50;
+  font-size: 1.2em;
+}
+
+.logo-secondary {
+  color: #3498db;
+  font-size: 1.4em;
+  font-weight: 900;
+}
+
+/* Size variants */
+.logo-small .logo-image {
+  width: 20px;
+  height: 20px;
+}
+
+.logo-small .logo-primary {
+  font-size: 1em;
+}
+
+.logo-small .logo-secondary {
+  font-size: 1.2em;
+}
+
+.logo-medium .logo-image {
+  width: 30px;
+  height: 30px;
+}
+
+.logo-medium .logo-primary {
+  font-size: 1.2em;
+}
+
+.logo-medium .logo-secondary {
+  font-size: 1.4em;
+}
+
+.logo-large .logo-image {
+  width: 40px;
+  height: 40px;
+}
+
+.logo-large .logo-primary {
+  font-size: 1.6em;
+}
+
+.logo-large .logo-secondary {
+  font-size: 1.8em;
+}
+
+/* Kiosk variant - extra large for touch interface */
+.logo-kiosk {
+  gap: 20px;
+}
+
+.logo-kiosk .logo-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.logo-kiosk .logo-primary {
+  font-size: 3em;
+}
+
+.logo-kiosk .logo-secondary {
+  font-size: 3.5em;
+}
+
+/* Animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .logo-kiosk .logo-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .logo-kiosk .logo-primary {
+    font-size: 2em;
+  }
+  
+  .logo-kiosk .logo-secondary {
+    font-size: 2.5em;
+  }
+} 

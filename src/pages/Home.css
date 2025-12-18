@@ -18,6 +18,12 @@
   text-align: left;
 }
 
+.hero-logo {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
 .hero-title {
   font-size: 3rem;
   font-weight: bold;

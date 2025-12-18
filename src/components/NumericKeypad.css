@@ -1,0 +1,153 @@
+.numeric-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.keypad-display {
+  width: 100%;
+}
+
+.keypad-input {
+  width: 100%;
+  padding: 25px;
+  font-size: 2rem;
+  text-align: center;
+  border: 3px solid #667eea;
+  border-radius: 15px;
+  background: white;
+  color: #2c3e50;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.keypad-input:focus {
+  outline: none;
+  border-color: #764ba2;
+  box-shadow: 0 4px 20px rgba(118, 75, 162, 0.3);
+}
+
+.keypad-input::placeholder {
+  color: #95a5a6;
+  font-weight: normal;
+}
+
+.keypad-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.keypad-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.keypad-button {
+  padding: 30px 20px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keypad-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.keypad-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.keypad-button.empty {
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+
+.keypad-button.empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.keypad-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.control-button {
+  font-size: 1.8rem;
+  padding: 25px 15px;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  min-height: 70px;
+}
+
+.control-button:hover {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .numeric-keypad {
+    max-width: 350px;
+  }
+  
+  .keypad-input {
+    padding: 20px;
+    font-size: 1.8rem;
+  }
+  
+  .keypad-button {
+    padding: 25px 15px;
+    font-size: 2rem;
+    min-height: 70px;
+  }
+  
+  .control-button {
+    font-size: 1.5rem;
+    padding: 20px 12px;
+    min-height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .numeric-keypad {
+    max-width: 300px;
+  }
+  
+  .keypad-input {
+    padding: 18px;
+    font-size: 1.6rem;
+  }
+  
+  .keypad-button {
+    padding: 22px 12px;
+    font-size: 1.8rem;
+    min-height: 65px;
+  }
+  
+  .control-button {
+    font-size: 1.3rem;
+    padding: 18px 10px;
+    min-height: 55px;
+  }
+} 

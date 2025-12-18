@@ -1,0 +1,229 @@
+.llamados-general-page {
+  padding: 40px 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.llamados-navigation {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.nav-header h1 {
+  font-size: 3rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.nav-header p {
+  font-size: 1.3rem;
+  color: #7f8c8d;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.nav-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+.nav-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.nav-card.facturacion {
+  border-color: #27ae60;
+}
+
+.nav-card.facturacion:hover {
+  border-color: #2ecc71;
+  background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+}
+
+.nav-card.citas {
+  border-color: #8e44ad;
+}
+
+.nav-card.citas:hover {
+  border-color: #9b59b6;
+  background: linear-gradient(135deg, #faf5ff 0%, #f1e8ff 100%);
+}
+
+.nav-card.general {
+  border-color: #3498db;
+}
+
+.nav-card.general:hover {
+  border-color: #2980b9;
+  background: linear-gradient(135deg, #f8fcff 0%, #e8f4ff 100%);
+}
+
+.card-icon {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.nav-card h3 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.nav-card p {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.card-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.card-features span {
+  font-size: 0.95rem;
+  color: #5a6c7d;
+  padding: 8px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.nav-card.facturacion .card-features span {
+  border-left-color: #27ae60;
+}
+
+.nav-card.citas .card-features span {
+  border-left-color: #8e44ad;
+}
+
+.btn-general {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.btn-general:hover {
+  background: linear-gradient(135deg, #2980b9 0%, #1c5980 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.nav-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+.info-section {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.info-section h4 {
+  font-size: 1.4rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-section li {
+  padding: 12px 0;
+  border-bottom: 1px solid #ecf0f1;
+  color: #5a6c7d;
+  line-height: 1.5;
+}
+
+.info-section li:last-child {
+  border-bottom: none;
+}
+
+.info-section li strong {
+  color: #2c3e50;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .llamados-general-page {
+    padding: 20px 15px;
+  }
+  
+  .nav-header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .nav-header p {
+    font-size: 1.1rem;
+  }
+  
+  .nav-options {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .nav-card {
+    padding: 25px;
+  }
+  
+  .card-icon {
+    font-size: 3rem;
+  }
+  
+  .nav-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .nav-info {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

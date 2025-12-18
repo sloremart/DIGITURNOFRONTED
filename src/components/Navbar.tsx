@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import Logo from './Logo';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -14,8 +15,8 @@ const Navbar: React.FC = () => {
       <div className="navbar-container">
         <div className="navbar-brand">
           <Link to="/" className="navbar-logo">
-            <span className="logo-icon">🎫</span>
-            <span className="logo-text">DigiTurno</span>
+            <Logo size="medium" />
+          
           </Link>
         </div>
         
@@ -39,23 +40,37 @@ const Navbar: React.FC = () => {
             Kiosco
           </Link>
           <Link 
-            to="/servicios" 
-            className={`navbar-item ${isActive('/servicios') ? 'active' : ''}`}
+            to="/facturacion" 
+            className={`navbar-item ${isActive('/facturacion') ? 'active' : ''}`}
           >
-            Servicios
+            💰 Facturación
           </Link>
           <Link 
-            to="/estadisticas" 
-            className={`navbar-item ${isActive('/estadisticas') ? 'active' : ''}`}
+            to="/asignacion-citas" 
+            className={`navbar-item ${isActive('/asignacion-citas') ? 'active' : ''}`}
           >
-            Estadísticas
+            📅 Asignación de Citas
           </Link>
           <Link 
-            to="/admin" 
-            className={`navbar-item ${isActive('/admin') ? 'active' : ''}`}
+            to="/llamados" 
+            className={`navbar-item ${isActive('/llamados') || location.pathname.startsWith('/llamados') ? 'active' : ''}`}
           >
-            Administración
+            📢 Llamados
           </Link>
+          <Link 
+            to="/sala-espera" 
+            className={`navbar-item ${isActive('/sala-espera') ? 'active' : ''}`}
+          >
+            🖥️ Pantalla Sala
+          </Link>
+
+          <Link 
+            to="/configuracion" 
+            className={`navbar-item ${isActive('/configuracion') ? 'active' : ''}`}
+          >
+            ⚙️ Configuración
+          </Link>
+
         </div>
 
         <div className="navbar-actions">

@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { turnoService, servicioService, estadisticasService } from '../services/api';
-import { Turno, Servicio, Estadisticas } from '../types';
+import { digiturnoService } from '../services/api';
+import { TurnoResponse } from '../types';
+import Logo from '../components/Logo';
 import './Home.css';
 
 const Home: React.FC = () => {
-  const [turnosPendientes, setTurnosPendientes] = useState<Turno[]>([]);
-  const [serviciosActivos, setServiciosActivos] = useState<Servicio[]>([]);
-  const [estadisticas, setEstadisticas] = useState<Estadisticas | null>(null);
+  const [turnosPendientes, setTurnosPendientes] = useState<TurnoResponse[]>([]);
+  const [estadisticas, setEstadisticas] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [turnos, servicios, stats] = await Promise.all([
-          turnoService.getTurnosPendientes(),
-          servicioService.getServiciosActivos(),
-          estadisticasService.getEstadisticas()
+        const [turnos, stats] = await Promise.all([
+          digiturnoService.getTurnosActivos(),
+          digiturnoService.getEstadisticas()
         ]);
 
         setTurnosPendientes(turnos.slice(0, 5)); // Solo mostrar los primeros 5
-        setServiciosActivos(servicios);
-        setEstadisticas(stats);
+        setEstadisticas(stats.estadisticas || null);
       } catch (error) {
         console.error('Error cargando datos:', error);
       } finally {
@@ -66,6 +64,9 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
+          <div className="hero-logo">
+            <Logo size="large" />
+          </div>
           <h1 className="hero-title">
             Sistema de Turnos Digital
             <span className="hero-subtitle">DigiTurno</span>
@@ -142,9 +143,9 @@ const Home: React.FC = () => {
         <div className="turnos-list">
           {turnosPendientes.length > 0 ? (
             turnosPendientes.map((turno) => (
-              <div key={turno.id} className="turno-card">
+              <div key={turno.numero_turno} className="turno-card">
                 <div className="turno-header">
-                  <span className="turno-numero">#{turno.numero}</span>
+                  <span className="turno-numero">#{turno.numero_turno}</span>
                   <span 
                     className="turno-estado"
                     style={{ backgroundColor: getEstadoColor(turno.estado) }}
@@ -153,9 +154,9 @@ const Home: React.FC = () => {
                   </span>
                 </div>
                 <div className="turno-content">
-                  <p className="turno-servicio">{turno.servicio}</p>
+                  <p className="turno-servicio">Turno</p>
                   <p className="turno-fecha">
-                    {new Date(turno.fecha_creacion).toLocaleString()}
+                    {new Date(turno.hora_asignacion).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -169,25 +170,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Services Overview */}
-      <section className="services-overview">
-        <h2 className="section-title">Servicios Disponibles</h2>
-        <div className="services-grid">
-          {serviciosActivos.map((servicio) => (
-            <div key={servicio.id} className="service-card">
-              <div className="service-icon">🔧</div>
-              <h3>{servicio.nombre}</h3>
-              <p>{servicio.descripcion}</p>
-              <div className="service-meta">
-                <span className="service-time">
-                  ⏱️ {servicio.tiempo_promedio} min
-                </span>
-                <span className="service-status active">Activo</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+
     </div>
   );
 };

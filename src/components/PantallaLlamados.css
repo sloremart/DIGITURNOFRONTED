@@ -1,0 +1,481 @@
+.pantalla-llamados {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  font-family: 'Arial', sans-serif;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Loading State */
+.pantalla-llamados.loading {
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.pantalla-llamados.empty {
+  justify-content: center;
+  align-items: center;
+}
+
+.empty-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.empty-icon {
+  font-size: 120px;
+  margin-bottom: 30px;
+  opacity: 0.7;
+}
+
+.empty-content h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  font-weight: 300;
+}
+
+.empty-content p {
+  font-size: 1.3rem;
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+.last-update {
+  font-size: 1rem;
+  opacity: 0.6;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: inline-block;
+}
+
+/* Header */
+.llamados-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.titulo-principal {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.contador-turnos {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 15px 25px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.contador-numero {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.contador-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.ultima-actualizacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  border-radius: 15px;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.update-icon {
+  font-size: 1.2rem;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Turno Principal */
+.turno-principal {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  border-radius: 25px;
+  padding: 40px;
+  margin-bottom: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px);
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turno-principal-content {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.turno-numero-grande {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 700;
+  color: #1e3c72;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 20px;
+  border: 3px solid #1e3c72;
+  min-width: 200px;
+}
+
+.turno-numero-grande {
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+}
+
+.turno-numero-grande .numero {
+  font-size: 4rem;
+  margin-top: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 3px;
+}
+
+.turno-info-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.paciente-principal,
+.servicio-principal,
+.destino-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paciente-principal .label,
+.servicio-principal .label,
+.destino-principal .label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+.paciente-principal .nombre {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1e3c72;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.servicio-principal .servicio {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #28a745;
+}
+
+.destino-principal .destino {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #dc3545;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+  border-radius: 15px;
+  border: 2px solid #dc3545;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Indicador de Progreso */
+.indicador-progreso {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 2px solid #e9ecef;
+}
+
+.progreso-info {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.progreso-barra {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progreso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Lista de otros turnos */
+.lista-turnos-llamados {
+  margin-bottom: 30px;
+}
+
+.lista-titulo {
+  font-size: 1.8rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 25px;
+  opacity: 0.9;
+  letter-spacing: 1px;
+}
+
+.turnos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.turno-card-pequeño {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.turno-card-pequeño:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.turno-numero-pequeño {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 80px;
+  text-align: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.turno-info-pequeño {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paciente-pequeño {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.destino-pequeño {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #ffd700;
+  letter-spacing: 1px;
+}
+
+/* Footer */
+.llamados-footer {
+  margin-top: auto;
+  padding-top: 30px;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.info-icon {
+  font-size: 1.2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .titulo-principal {
+    font-size: 3rem;
+  }
+  
+  .turno-principal-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+  
+  .turno-numero-grande {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .pantalla-llamados {
+    padding: 15px;
+  }
+  
+  .titulo-principal {
+    font-size: 2.5rem;
+  }
+  
+  .info-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .contador-turnos,
+  .ultima-actualizacion {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .turno-principal {
+    padding: 25px;
+  }
+  
+  .turno-numero-grande .numero {
+    font-size: 3rem;
+  }
+  
+  .paciente-principal .nombre {
+    font-size: 1.8rem;
+  }
+  
+  .servicio-principal .servicio {
+    font-size: 1.5rem;
+  }
+  
+  .destino-principal .destino {
+    font-size: 1.6rem;
+    padding: 12px 20px;
+  }
+  
+  .turnos-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .turno-card-pequeño {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .footer-info {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .titulo-principal {
+    font-size: 2rem;
+  }
+  
+  .turno-numero-grande {
+    min-width: 150px;
+    padding: 15px;
+  }
+  
+  .turno-numero-grande .numero {
+    font-size: 2.5rem;
+  }
+  
+  .paciente-principal .nombre {
+    font-size: 1.5rem;
+  }
+  
+  .destino-principal .destino {
+    font-size: 1.4rem;
+  }
+}

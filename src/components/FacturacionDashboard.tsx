@@ -1,0 +1,311 @@
+import React, { useState, useEffect } from 'react';
+import { TurnoResponse } from '../types';
+import { digiturnoService } from '../services/api';
+import './FacturacionDashboard.css';
+
+const FacturacionDashboard: React.FC = () => {
+  const [turnosPendientes, setTurnosPendientes] = useState<TurnoResponse[]>([]);
+  const [turnosLlamados, setTurnosLlamados] = useState<TurnoResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  useEffect(() => {
+    cargarTurnos();
+    
+    // Auto-refresh cada 15 segundos
+    const interval = setInterval(cargarTurnos, 15000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const cargarTurnos = async () => {
+    setLoading(true);
+    try {
+      // Usar el endpoint específico para turnos de facturación
+      const turnos = await digiturnoService.getTurnosFacturacion();
+      
+      console.log('📊 Turnos de facturación recibidos del backend:', turnos);
+      
+      // Debug: mostrar todos los turnos recibidos
+      console.log('🔍 Debug - Turnos de facturación recibidos:', turnos.map(t => ({
+        numero: t.numero_turno,
+        modulo: t.modulo,
+        tipo_operador: t.tipo_operador,
+        estado: t.estado
+      })));
+      
+      // Ya no necesitamos filtrar, el backend nos devuelve solo los turnos de facturación
+      const turnosFacturacion = turnos;
+      
+      console.log('🔍 Endpoint específico de facturación usado - no se requiere filtrado adicional');
+      
+      console.log('💳 Turnos de facturación:', turnosFacturacion);
+      
+      const pendientes = turnosFacturacion.filter(t => t.estado === 'PENDIENTE');
+      const llamados = turnosFacturacion.filter(t => t.estado === 'LLAMADO');
+      
+      console.log('📋 Turnos pendientes de facturación:', pendientes);
+      console.log('📢 Turnos llamados de facturación:', llamados);
+      
+      // Debug: mostrar información de filtrado
+      console.log('🔍 Debug filtrado facturación:', {
+        total_turnos: turnos.length,
+        turnos_facturacion: turnos.filter(t => t.modulo === 'FACTURACION').length,
+        turnos_preferenciales_facturador: turnos.filter(t => t.modulo === 'PREFERENCIAL' && t.tipo_operador === 'FACTURADOR').length,
+        turnos_filtrados: turnosFacturacion.length
+      });
+      
+      // Debug: mostrar qué turnos se están filtrando
+      console.log('🔍 Turnos que pasan el filtro de facturación:', turnosFacturacion.map(t => ({
+        numero: t.numero_turno,
+        modulo: t.modulo,
+        tipo_operador: t.tipo_operador,
+        estado: t.estado
+      })));
+      
+      // Ordenar por hora de asignación (más antiguos primero)
+      const ordenarPorHora = (a: TurnoResponse, b: TurnoResponse) => 
+        new Date(a.hora_asignacion).getTime() - new Date(b.hora_asignacion).getTime();
+      
+      setTurnosPendientes(pendientes.sort(ordenarPorHora));
+      setTurnosLlamados(llamados.sort(ordenarPorHora));
+      setLastUpdate(new Date());
+      
+    } catch (error) {
+      console.error('Error cargando turnos de facturación:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const llamarTurno = async (turno: TurnoResponse) => {
+    try {
+      console.log('📢 Llamando turno:', turno.numero_turno);
+      await digiturnoService.llamarTurno(turno.numero_turno);
+      console.log('✅ Turno llamado, recargando lista...');
+      await cargarTurnos(); // Recargar para actualizar estados
+    } catch (error) {
+      console.error('Error llamando turno:', error);
+    }
+  };
+
+  const atenderTurno = async (turno: TurnoResponse) => {
+    try {
+      await digiturnoService.atenderTurno(turno.numero_turno);
+      await cargarTurnos(); // Recargar para actualizar estados
+    } catch (error) {
+      console.error('Error atendiendo turno:', error);
+    }
+  };
+
+  const getNombreCompleto = (paciente: any) => {
+    if (!paciente) return 'Paciente no disponible';
+    const nombres = [paciente.nombre1, paciente.nombre2].filter(Boolean).join(' ');
+    const apellidos = [paciente.apellido1, paciente.apellido2].filter(Boolean).join(' ');
+    return `${nombres} ${apellidos}`.trim() || 'Paciente no disponible';
+  };
+
+  // Función que combina ambas estrategias para mostrar el nombre
+  const getNombreMostrar = (turno: TurnoResponse) => {
+    return turno.nombre_paciente || getNombreCompleto(turno.paciente) || 'Paciente no disponible';
+  };
+
+  // Función auxiliar para mostrar el nombre del paciente
+  const mostrarNombrePaciente = (turno: TurnoResponse) => {
+    // Prioridad 1: nombre_paciente del backend (que ya funciona)
+    if (turno.nombre_paciente) {
+      return turno.nombre_paciente;
+    }
+    // Prioridad 2: objeto paciente del frontend
+    if (turno.paciente) {
+      return getNombreCompleto(turno.paciente);
+    }
+    // Fallback
+    return 'Paciente no disponible';
+  };
+
+  const getTiempoEspera = (horaAsignacion: string) => {
+    const asignacion = new Date(horaAsignacion);
+    const ahora = new Date();
+    const diffMs = ahora.getTime() - asignacion.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 60) {
+      return `${diffMins} min`;
+    } else {
+      const horas = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      return `${horas}h ${mins}min`;
+    }
+  };
+
+  const getPrioridadColor = (turno: TurnoResponse) => {
+    const tiempoEspera = getTiempoEspera(turno.hora_asignacion);
+    const mins = parseInt(tiempoEspera.split(' ')[0]);
+    
+    if (mins > 60) return '#e53e3e'; // Rojo suave - más de 1 hora
+    if (mins > 30) return '#9f7aea'; // Morado claro - más de 30 min
+    return '#4299e1'; // Azul suave - menos de 30 min
+  };
+
+  return (
+    <div className="facturacion-dashboard">
+      <div className="dashboard-header">
+        <h1>🎫 Dashboard de Facturación</h1>
+        <div className="dashboard-stats">
+          <div className="stat-card pending">
+            <span className="stat-number">{turnosPendientes.length}</span>
+            <span className="stat-label">Pendientes</span>
+          </div>
+          <div className="stat-card called">
+            <span className="stat-number">{turnosLlamados.length}</span>
+            <span className="stat-label">Llamados</span>
+          </div>
+          <div className="stat-card total">
+            <span className="stat-number">{turnosPendientes.length + turnosLlamados.length}</span>
+            <span className="stat-label">Total</span>
+          </div>
+        </div>
+        <div className="dashboard-controls">
+          <button 
+            className="btn-refresh-dashboard"
+            onClick={cargarTurnos}
+            disabled={loading}
+          >
+            {loading ? '⏳ Actualizando...' : '🔄 Actualizar'}
+          </button>
+          <span className="last-update">
+            Última actualización: {lastUpdate.toLocaleTimeString('es-ES')}
+          </span>
+        </div>
+      </div>
+
+      <div className="dashboard-content">
+        {/* Turnos Pendientes */}
+        <div className="dashboard-section">
+          <h2 className="section-title pending">
+            ⏳ Turnos Pendientes ({turnosPendientes.length})
+          </h2>
+          <div className="turnos-grid-dashboard">
+            {turnosPendientes.length > 0 ? (
+              turnosPendientes.map(turno => (
+                <div key={turno.numero_turno} className={`turno-card-dashboard pending ${turno.es_preferencial ? 'preferencial' : ''}`}>
+                  <div className="turno-header-dashboard">
+                    <span className="turno-numero-dashboard">{turno.numero_turno}</span>
+                    <span 
+                      className="turno-prioridad-dashboard"
+                      style={{ backgroundColor: getPrioridadColor(turno) }}
+                    >
+                      {getTiempoEspera(turno.hora_asignacion)}
+                    </span>
+                  </div>
+                  
+                  <div className="turno-content-dashboard">
+                    <p className="turno-paciente-dashboard">
+                      <strong>{mostrarNombrePaciente(turno)}</strong>
+                    </p>
+                    
+                    {turno.cita && (
+                      <p className="turno-cita-dashboard">
+                        📋 Cita #{turno.cita.id_cita}
+                      </p>
+                    )}
+                    
+                    <p className="turno-hora-dashboard">
+                      ⏰ {new Date(turno.hora_asignacion).toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </p>
+                  </div>
+                  
+                  <div className="turno-actions-dashboard">
+                    <button 
+                      className="btn-llamar-dashboard"
+                      onClick={() => llamarTurno(turno)}
+                    >
+                      📢 Llamar
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="empty-state-dashboard">
+                <span className="empty-icon-dashboard">🎫</span>
+                <p>No hay turnos pendientes</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Turnos Llamados */}
+        <div className="dashboard-section">
+          <h2 className="section-title called">
+            📢 Turnos Llamados ({turnosLlamados.length})
+          </h2>
+          <div className="turnos-grid-dashboard">
+            {turnosLlamados.length > 0 ? (
+              turnosLlamados.map(turno => (
+                <div key={turno.numero_turno} className={`turno-card-dashboard called ${turno.es_preferencial ? 'preferencial' : ''}`}>
+                  <div className="turno-header-dashboard">
+                    <span className="turno-numero-dashboard">{turno.numero_turno}</span>
+                    <span className="turno-estado-dashboard called">
+                      Llamado
+                    </span>
+                  </div>
+                  
+                  <div className="turno-content-dashboard">
+                    <p className="turno-paciente-dashboard">
+                      <strong>{mostrarNombrePaciente(turno)}</strong>
+                    </p>
+                    
+                    {turno.cita && (
+                      <p className="turno-cita-dashboard">
+                        📋 Cita #{turno.cita.id_cita}
+                      </p>
+                    )}
+                    
+                    <p className="turno-hora-dashboard">
+                      ⏰ {new Date(turno.hora_asignacion).toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </p>
+                  </div>
+                  
+                  <div className="turno-actions-dashboard">
+                    <button 
+                      className="btn-atender-dashboard"
+                      onClick={() => atenderTurno(turno)}
+                    >
+                      ✅ Atender
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="empty-state-dashboard">
+                <span className="empty-icon-dashboard">📢</span>
+                <p>No hay turnos llamados</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Indicador de estado del sistema */}
+      <div className="system-status">
+        <div className="status-indicator online">
+          <span className="status-dot"></span>
+          Sistema en línea
+        </div>
+        <div className="status-info">
+          <span>Auto-refresh: Activado (15s)</span>
+          <span>Conectado a: Backend API</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FacturacionDashboard;
