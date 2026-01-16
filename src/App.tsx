@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Turnos from './pages/Turnos';
 import Kiosco from './pages/Kiosco';
 import Configuracion from './pages/Configuracion';
 import Facturacion from './pages/Facturacion';
@@ -22,7 +21,6 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/turnos" element={<Turnos />} />
             <Route path="/kiosco" element={<Kiosco />} />
             <Route path="/facturacion" element={<Facturacion />} />
             <Route path="/asignacion-citas" element={<AsignacionCitas />} />

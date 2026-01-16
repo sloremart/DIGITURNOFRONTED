@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { digiturnoService } from '../services/api';
+import { digiturnoService, API_URL } from '../services/api';
 import { TurnoResponse, Paciente, Cita } from '../types';
 import { PrinterService } from '../services/printerService';
 // TicketPrinter removido - impresión automática implementada
@@ -9,7 +9,7 @@ const Kiosco: React.FC = () => {
   const [step, setStep] = useState<'servicio' | 'preferencial-tipo' | 'tipo-documento' | 'documento' | 'confirmacion' | 'exito'>('servicio');
   const [servicioSeleccionado, setServicioSeleccionado] = useState<'preferencial' | 'facturacion' | 'asignacion' | null>(null);
   const [tipoPreferencial, setTipoPreferencial] = useState<'cita' | 'facturacion' | null>(null);
-  const [tipoDocumento, setTipoDocumento] = useState<'CC' | 'TI' | 'CE' | 'PP' | null>(null);
+  const [tipoDocumento, setTipoDocumento] = useState<'CC' | 'TI' | 'CE' | 'PP' | 'RC' | null>(null);
   const [numeroDocumento, setNumeroDocumento] = useState('');
   const [pacienteEncontrado, setPacienteEncontrado] = useState<Paciente | null>(null);
   const [citasPaciente, setCitasPaciente] = useState<Cita[]>([]);
@@ -31,7 +31,7 @@ const Kiosco: React.FC = () => {
     setStep('tipo-documento');
   };
 
-  const seleccionarTipoDocumento = (tipo: 'CC' | 'TI' | 'CE' | 'PP') => {
+  const seleccionarTipoDocumento = (tipo: 'CC' | 'TI' | 'CE' | 'PP' | 'RC') => {
     setTipoDocumento(tipo);
     setNumeroDocumento(''); // Clear document number on type change
     setPacienteEncontrado(null);
@@ -208,7 +208,7 @@ const Kiosco: React.FC = () => {
           tipo_operador_override: "FACTURADOR"
         };
         
-        const response = await fetch('http://localhost:8000/asignar-turno-facturacion', {
+        const response = await fetch(`${API_URL}/asignar-turno-facturacion`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestData)
@@ -453,7 +453,7 @@ const Kiosco: React.FC = () => {
                      id="tipoDocumento"
                      value={tipoDocumento || ''}
                      onChange={(e) => {
-                       const selectedType = e.target.value as 'CC' | 'TI' | 'CE' | 'PP';
+                       const selectedType = e.target.value as 'CC' | 'TI' | 'CE' | 'PP'| 'RC';
                        if (selectedType) {
                          seleccionarTipoDocumento(selectedType);
                        } else {
@@ -467,6 +467,7 @@ const Kiosco: React.FC = () => {
                      <option value="TI">👶 Tarjeta de Identidad</option>
                      <option value="CE">🌍 Cédula de Extranjería</option>
                      <option value="PP">✈️ Pasaporte</option>
+                     <option value="RC">👶 Registro Civil</option>
                    </select>
                  </div>
 

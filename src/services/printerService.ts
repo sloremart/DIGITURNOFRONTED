@@ -1,4 +1,5 @@
 import { TurnoResponse } from '../types';
+import { API_URL } from './api';
 
 // Interfaz para la configuración de la impresora
 interface PrinterServiceConfig {
@@ -45,87 +46,172 @@ export class PrinterService {
     return `\n${lines.join('\n')}\n`;
   }
 
+  /**
+   * Detecta si el navegador está en modo kiosco
+   * (aproximación basada en características del navegador)
+   */
+  private isKioskMode(): boolean {
+    // Detectar modo kiosco: si no hay barra de herramientas visible
+    // o si window.chrome tiene propiedades específicas de kiosco
+    try {
+      // En modo kiosco, window.outerHeight === window.innerHeight (sin barras)
+      const hasNoBars = window.outerHeight === window.innerHeight && 
+                        window.outerWidth === window.innerWidth;
+      
+      // Verificar si hay flags de kiosco (no siempre disponible)
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isChromeBased = userAgent.includes('chrome') || userAgent.includes('edge') || userAgent.includes('brave');
+      
+      // Si no hay barras y es Chrome-based, probablemente está en kiosco
+      return hasNoBars && isChromeBased;
+    } catch {
+      return false;
+    }
+  }
+
   async printTicket(turno: TurnoResponse, servicio?: string): Promise<boolean> {
     try {
       const ticketContentText = this.formatForPOSPrinter(turno, servicio);
       const ticketContentHtml = this.generateTicketHTML(turno, servicio);
-      const useHtml = (this.config.renderMode ?? 'html') === 'html';
-      const ticketContent = useHtml ? ticketContentHtml : ticketContentText;
       
-      let primaryResult = false;
-
-      // Usar el nuevo endpoint de impresión personalizada
+      const isKiosk = this.isKioskMode();
+      
+      if (isKiosk) {
+        console.log('🖨️ Modo kiosco detectado - Impresión automática activada');
+      } else {
+        console.log('🖨️ Modo normal - El diálogo de impresión aparecerá (requiere --kiosk-printing para impresión automática)');
+      }
+      
+      // MÉTODO PRINCIPAL: Usar iframe oculto para impresión
+      // Si el navegador está en modo kiosco con --kiosk-printing, imprimirá automáticamente sin diálogo
+      // Si no está en modo kiosco, mostrará el diálogo (limitación de seguridad del navegador)
       try {
-        console.log('🖨️ Enviando ticket al backend para impresión...', {
-          numero_turno: turno.numero_turno,
-          contenido_length: ticketContent.length
-        });
+        // Crear iframe completamente oculto
+        const printIframe = document.createElement('iframe');
+        printIframe.style.position = 'fixed';
+        printIframe.style.right = '0';
+        printIframe.style.bottom = '0';
+        printIframe.style.width = '0';
+        printIframe.style.height = '0';
+        printIframe.style.border = '0';
+        printIframe.style.opacity = '0';
+        printIframe.style.pointerEvents = 'none';
+        printIframe.style.zIndex = '-1';
+        printIframe.style.visibility = 'hidden';
         
-        const response = await fetch('http://localhost:8000/printer/print-ticket-custom', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            numero_turno: turno.numero_turno,
-            ticket_content: ticketContent,
-            ticket_content_plain: ticketContentText,
-            ticket_format: useHtml ? 'html' : 'text'
-          }),
-        });
-
-        console.log('📥 Respuesta del backend:', response.status, response.statusText);
+        document.body.appendChild(printIframe);
         
-        if (response.ok) {
-          const printData = await response.json();
-          console.log('📄 Datos de respuesta:', printData);
-          
-          if (printData.success) {
-            console.log('✅ Ticket NEURODX impreso exitosamente desde frontend');
-            primaryResult = true;
-          } else {
-            console.error('❌ Error en la respuesta del backend:', printData);
-            primaryResult = await this.trySimpleFormat(turno);
+        console.log('✅ Iframe oculto creado');
+        
+        // Escribir contenido en el iframe
+        const iframeDoc = printIframe.contentDocument || printIframe.contentWindow?.document;
+        if (!iframeDoc) {
+          throw new Error('No se pudo acceder al documento del iframe');
+        }
+        
+        iframeDoc.open();
+        iframeDoc.write(ticketContentHtml);
+        iframeDoc.close();
+        
+        console.log('✅ Contenido escrito en iframe');
+        
+        // Función para imprimir cuando el iframe esté listo
+        const printWhenReady = () => {
+          try {
+            const iframeWindow = printIframe.contentWindow;
+            if (!iframeWindow) {
+              throw new Error('No se pudo acceder a la ventana del iframe');
+            }
+            
+            console.log('🖨️ Llamando a print() en iframe...');
+            
+            // Llamar a print() en el iframe
+            iframeWindow.focus();
+            
+            // Intentar imprimir automáticamente
+            // Si el navegador tiene --kiosk-printing, esto funcionará sin diálogo
+            // Si no, intentaremos simular Enter automáticamente después de un breve delay
+            iframeWindow.print();
+            
+            console.log('✅ print() llamado exitosamente');
+            
+            if (!isKiosk) {
+              console.log('💡 NOTA: Para impresión completamente automática sin diálogo,');
+              console.log('   inicia el navegador con: --kiosk --kiosk-printing');
+              console.log('   Verifica en brave://version o chrome://version que la línea "Command Line" lo incluya.');
+            } else {
+              console.log('✅ Modo kiosco detectado (aprox). Si sigue apareciendo vista previa, el proceso NO tiene --kiosk-printing.');
+              console.log('   Verifica en brave://version (Command Line).');
+            }
+            
+            // Limpiar el iframe después de un tiempo
+            setTimeout(() => {
+              if (printIframe.parentNode) {
+                printIframe.parentNode.removeChild(printIframe);
+                console.log('🧹 Iframe removido');
+              }
+            }, 3000);
+            
+            return true;
+          } catch (error) {
+            console.error('❌ Error en impresión:', error);
+            if (printIframe.parentNode) {
+              printIframe.parentNode.removeChild(printIframe);
+            }
+            return false;
           }
-        } else {
-          const errorText = await response.text();
-          console.error('❌ Error HTTP del backend:', response.status, errorText);
-          primaryResult = await this.trySimpleFormat(turno);
-        }
-      } catch (error) {
-        console.error('❌ Error de conexión con endpoint de impresión:', error);
-        console.log('🔄 Intentando formato simple como fallback...');
-        primaryResult = await this.trySimpleFormat(turno);
-      }
-
-      if (primaryResult) {
+        };
+        
+        // Esperar a que el iframe cargue completamente
+        printIframe.onload = () => {
+          console.log('✅ Iframe cargado, imprimiendo...');
+          setTimeout(printWhenReady, 300);
+        };
+        
+        // Fallback: intentar después de un tiempo fijo
+        setTimeout(() => {
+          if (printIframe.parentNode) {
+            console.log('⏰ Fallback: intentando imprimir...');
+            printWhenReady();
+          }
+        }, 1000);
+        
         return true;
-      }
-
-      // Fallback al endpoint anterior si el nuevo no está disponible
-      try {
-        const response = await fetch('http://localhost:8000/printer/print-ticket', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            numero_turno: turno.numero_turno,
-            paciente_nombre: turno.paciente ? this.getNombreCompleto(turno.paciente) : 'Paciente',
-            hora_cita: turno.cita?.hora_cita || new Date().toLocaleTimeString('es-ES')
-          }),
-        });
-
-        if (response.ok) {
-          console.log('Ticket enviado al backend para impresión (fallback)');
-          return true;
-        }
       } catch (error) {
-        console.log('Endpoint de fallback también falló');
-      }
+        console.error('❌ Error creando iframe de impresión:', error);
+        
+        // Si falló, intentar con el backend como respaldo
+        console.log('🔄 Intentando impresión a través del backend del servidor (respaldo)...');
+        try {
+          const printUrl = `${API_URL}/printer/print-ticket-custom`;
+          const response = await fetch(printUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              numero_turno: turno.numero_turno,
+              ticket_content: ticketContentHtml,
+              ticket_content_plain: ticketContentText,
+              ticket_format: 'text'
+            }),
+          });
 
-      console.error('No se pudo conectar con el backend para impresión');
-      return false;
+          if (response.ok) {
+            const printData = await response.json();
+            if (printData.success) {
+              console.log('✅ Ticket impreso exitosamente a través del backend');
+              return true;
+            }
+          }
+        } catch (backendError) {
+          console.error('❌ Error con backend:', backendError);
+        }
+
+        // Si ambos métodos fallaron
+        console.error('❌ No se pudo imprimir el ticket.');
+        return false;
+      }
     } catch (error) {
       console.error('Error imprimiendo ticket:', error);
       return false;
@@ -166,11 +252,6 @@ export class PrinterService {
       };
       nombreServicio = modulos[turno.modulo] || turno.modulo;
     }
-
-    // Información adicional
-    const horaCita = turno.cita?.hora_cita || turno.hora_cita || '';
-    const esPreferencial = turno.es_preferencial || false;
-    const motivoPreferencial = turno.motivo_preferencial || '';
 
     const lines: string[] = [];
     
@@ -251,7 +332,7 @@ export class PrinterService {
     try {
       const simpleContent = this.formatSimpleForPOS(turno);
       
-      const response = await fetch('http://localhost:8000/printer/print-ticket-custom', {
+      const response = await fetch(`${API_URL}/printer/print-ticket-custom`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -340,7 +421,6 @@ export class PrinterService {
     }
 
     // Información adicional
-    const horaCita = turno.cita?.hora_cita || turno.hora_cita || '';
     const esPreferencial = turno.es_preferencial || false;
     const motivoPreferencial = turno.motivo_preferencial || '';
 

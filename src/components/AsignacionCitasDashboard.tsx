@@ -21,10 +21,13 @@ const AsignacionCitasDashboard: React.FC = () => {
   const cargarTurnos = async () => {
     setLoading(true);
     try {
+      console.log('🔄 Iniciando carga de turnos de asignación de citas...');
       // Usar el endpoint específico para turnos de asignación de citas
       const turnos = await digiturnoService.getTurnosAsignacionCita();
       
       console.log('📊 Turnos de asignación de citas recibidos del backend:', turnos);
+      console.log('📊 Cantidad de turnos recibidos:', turnos?.length || 0);
+      console.log('📊 Tipo de turnos:', Array.isArray(turnos) ? 'Array' : typeof turnos);
       
       // Debug: mostrar todos los turnos recibidos
       console.log('🔍 Debug - Turnos de asignación recibidos:', turnos.map(t => ({
@@ -41,11 +44,23 @@ const AsignacionCitasDashboard: React.FC = () => {
       
       console.log('📅 Turnos de asignación de citas:', turnosAsignacion);
       
-      const pendientes = turnosAsignacion.filter(t => t.estado === 'PENDIENTE');
+      const pendientes = turnosAsignacion.filter(t => {
+        const esPendiente = t.estado === 'PENDIENTE';
+        if (!esPendiente) {
+          console.log(`⚠️ Turno ${t.numero_turno} no es PENDIENTE, estado: "${t.estado}"`);
+        }
+        return esPendiente;
+      });
       const llamados = turnosAsignacion.filter(t => t.estado === 'LLAMADO');
       
       console.log('📋 Turnos pendientes de asignación:', pendientes);
+      console.log('📋 Cantidad de pendientes:', pendientes.length);
       console.log('📢 Turnos llamados de asignación:', llamados);
+      console.log('📢 Cantidad de llamados:', llamados.length);
+      
+      // Verificar que los estados se están estableciendo
+      console.log('🔍 ANTES de setTurnosPendientes - pendientes.length:', pendientes.length);
+      console.log('🔍 ANTES de setTurnosLlamados - llamados.length:', llamados.length);
       
       // Debug: mostrar información de filtrado
       console.log('🔍 Debug filtrado asignación:', {
@@ -67,9 +82,22 @@ const AsignacionCitasDashboard: React.FC = () => {
       const ordenarPorHora = (a: TurnoResponse, b: TurnoResponse) => 
         new Date(a.hora_asignacion).getTime() - new Date(b.hora_asignacion).getTime();
       
-      setTurnosPendientes(pendientes.sort(ordenarPorHora));
-      setTurnosLlamados(llamados.sort(ordenarPorHora));
+      const pendientesOrdenados = pendientes.sort(ordenarPorHora);
+      const llamadosOrdenados = llamados.sort(ordenarPorHora);
+      
+      console.log('🔍 DESPUÉS de ordenar - pendientesOrdenados.length:', pendientesOrdenados.length);
+      console.log('🔍 DESPUÉS de ordenar - llamadosOrdenados.length:', llamadosOrdenados.length);
+      console.log('🔍 Primeros 3 pendientes ordenados:', pendientesOrdenados.slice(0, 3).map(t => ({
+        numero: t.numero_turno,
+        estado: t.estado,
+        nombre: t.nombre_paciente
+      })));
+      
+      setTurnosPendientes(pendientesOrdenados);
+      setTurnosLlamados(llamadosOrdenados);
       setLastUpdate(new Date());
+      
+      console.log('✅ Estados actualizados - turnosPendientes y turnosLlamados establecidos');
       
     } catch (error) {
       console.error('Error cargando turnos de asignación de citas:', error);
@@ -181,8 +209,15 @@ const AsignacionCitasDashboard: React.FC = () => {
             ⏳ Turnos Pendientes ({turnosPendientes.length})
           </h2>
           <div className="turnos-grid-dashboard">
+            {(() => {
+              console.log('🎨 RENDERIZANDO - turnosPendientes.length:', turnosPendientes.length);
+              console.log('🎨 RENDERIZANDO - turnosPendientes:', turnosPendientes);
+              return null;
+            })()}
             {turnosPendientes.length > 0 ? (
-              turnosPendientes.map(turno => (
+              turnosPendientes.map(turno => {
+                console.log('🎨 Renderizando turno:', turno.numero_turno);
+                return (
                 <div key={turno.numero_turno} className={`turno-card-dashboard pending ${turno.es_preferencial ? 'preferencial' : ''}`}>
                   <div className="turno-header-dashboard">
                     <span className="turno-numero-dashboard">{turno.numero_turno}</span>
@@ -222,7 +257,8 @@ const AsignacionCitasDashboard: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              ))
+              );
+              })
             ) : (
               <div className="empty-state-dashboard">
                 <span className="empty-icon-dashboard">📅</span>

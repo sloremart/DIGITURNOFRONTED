@@ -3,18 +3,20 @@ import {
   Paciente, 
   Cita, 
   TurnoResponse, 
-  AsignarTurnoRequest, 
   AsignarTurnoResponse,
   BuscarPacienteResponse,
-  BuscarCitasResponse,
   TurnosActivosResponse,
   MotivosPreferencialesResponse,
   EstadisticasResponse
 } from '../types';
 
 // Configurar la instancia de axios
-// Usa variable de entorno en producción, localhost en desarrollo
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Usa variable de entorno en producción, valor por defecto para producción
+export const API_URL = process.env.REACT_APP_API_URL || 'http://192.168.1.211:8010';
+
+// Debug: Log para verificar qué URL se está usando
+console.log('🔧 API_URL configurada:', API_URL);
+console.log('🔧 REACT_APP_API_URL desde env:', process.env.REACT_APP_API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -131,29 +133,116 @@ export const digiturnoService = {
 
   // Métodos existentes
   getTurnosActivos: async (): Promise<TurnoResponse[]> => {
-    const response = await api.get('/turnos-activos');
-    if (response.data.success) {
-      return response.data.turnos || [];
-    } else {
-      throw new Error(response.data.detail || 'Error al obtener turnos activos');
+    try {
+      console.log('📡 Llamando endpoint /turnos-activos...');
+      console.log('📡 URL completa:', `${API_URL}/turnos-activos`);
+      const response = await api.get<TurnosActivosResponse>('/turnos-activos');
+      console.log('📥 Respuesta completa:', response.data);
+      console.log('📥 Tipo de respuesta:', typeof response.data);
+      console.log('📥 Es array?:', Array.isArray(response.data));
+      console.log('📥 Claves en response.data:', Object.keys(response.data || {}));
+      
+      // El backend devuelve: { success: true, turnos: [...], total: ... }
+      // Priorizar 'turnos' que es el formato actual del backend
+      if (response.data.success && (response.data as any).turnos) {
+        const turnos = (response.data as any).turnos || [];
+        console.log('✅ Turnos encontrados (en turnos con success):', turnos.length);
+        console.log('📋 Primeros turnos:', turnos.slice(0, 3));
+        return turnos;
+      } else if ((response.data as any).turnos && Array.isArray((response.data as any).turnos)) {
+        // Si está en response.data.turnos sin success
+        const turnos = (response.data as any).turnos;
+        console.log('✅ Turnos encontrados (en turnos sin success):', turnos.length);
+        console.log('📋 Primeros turnos:', turnos.slice(0, 3));
+        return turnos;
+      } else if (response.data.success && response.data.datos) {
+        // Compatibilidad con formato antiguo que usa 'datos'
+        console.log('✅ Turnos encontrados (en datos con success):', response.data.datos.length);
+        return response.data.datos || [];
+      } else if (response.data.datos && Array.isArray(response.data.datos)) {
+        // Algunos backends usan 'datos' en lugar de 'turnos'
+        console.log('✅ Turnos encontrados (en datos):', response.data.datos.length);
+        return response.data.datos;
+      } else if (Array.isArray(response.data)) {
+        // Si la respuesta es directamente un array
+        console.log('✅ Turnos encontrados (array directo):', response.data.length);
+        return response.data;
+      } else {
+        console.warn('⚠️ Formato de respuesta inesperado:', response.data);
+        console.warn('⚠️ Claves disponibles:', Object.keys(response.data || {}));
+        console.warn('⚠️ Tipo de response.data:', typeof response.data);
+        return [];
+      }
+    } catch (error: any) {
+      console.error('❌ Error en getTurnosActivos:', error);
+      console.error('   URL intentada:', `${API_URL}/turnos-activos`);
+      console.error('   Status:', error.response?.status);
+      console.error('   Status Text:', error.response?.statusText);
+      console.error('   Detalles:', error.response?.data);
+      console.error('   Mensaje:', error.message);
+      console.error('   ¿Es error de red?:', !error.response);
+      // Retornar array vacío en lugar de lanzar error para que la tabla se muestre vacía
+      return [];
     }
   },
 
   getTurnosFacturacion: async (): Promise<TurnoResponse[]> => {
-    const response = await api.get('/turnos-facturacion');
-    if (response.data.success) {
-      return response.data.turnos || [];
-    } else {
-      throw new Error(response.data.mensaje || 'Error al obtener turnos de facturación');
+    try {
+      console.log('📡 Llamando endpoint /turnos-facturacion...');
+      const response = await api.get('/turnos-facturacion');
+      console.log('📥 Respuesta turnos-facturacion:', response.data);
+      
+      if (response.data.success && response.data.turnos) {
+        return response.data.turnos || [];
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data.turnos && Array.isArray(response.data.turnos)) {
+        return response.data.turnos;
+      } else {
+        console.warn('⚠️ Formato inesperado en turnos-facturacion:', response.data);
+        return [];
+      }
+    } catch (error: any) {
+      console.error('❌ Error en getTurnosFacturacion:', error);
+      return [];
     }
   },
 
   getTurnosAsignacionCita: async (): Promise<TurnoResponse[]> => {
-    const response = await api.get('/turnos-asignacion-cita');
-    if (response.data.success) {
-      return response.data.turnos || [];
-    } else {
-      throw new Error(response.data.mensaje || 'Error al obtener turnos de asignación de cita');
+    try {
+      console.log('📡 Llamando endpoint /turnos-asignacion-cita...');
+      console.log('📡 URL completa:', `${API_URL}/turnos-asignacion-cita`);
+      const response = await api.get('/turnos-asignacion-cita');
+      console.log('📥 Respuesta completa turnos-asignacion-cita:', response.data);
+      console.log('📥 Tipo de respuesta:', typeof response.data);
+      console.log('📥 Claves en response.data:', Object.keys(response.data || {}));
+      
+      if (response.data.success && response.data.turnos) {
+        const turnos = response.data.turnos || [];
+        console.log('✅ Turnos encontrados (en turnos con success):', turnos.length);
+        console.log('📋 Primeros turnos:', turnos.slice(0, 3));
+        return turnos;
+      } else if (Array.isArray(response.data)) {
+        console.log('✅ Turnos encontrados (array directo):', response.data.length);
+        return response.data;
+      } else if (response.data.turnos && Array.isArray(response.data.turnos)) {
+        const turnos = response.data.turnos;
+        console.log('✅ Turnos encontrados (en turnos sin success):', turnos.length);
+        console.log('📋 Primeros turnos:', turnos.slice(0, 3));
+        return turnos;
+      } else {
+        console.warn('⚠️ Formato inesperado en turnos-asignacion-cita:', response.data);
+        console.warn('⚠️ Claves disponibles:', Object.keys(response.data || {}));
+        return [];
+      }
+    } catch (error: any) {
+      console.error('❌ Error en getTurnosAsignacionCita:', error);
+      console.error('   URL intentada:', `${API_URL}/turnos-asignacion-cita`);
+      console.error('   Status:', error.response?.status);
+      console.error('   Status Text:', error.response?.statusText);
+      console.error('   Detalles:', error.response?.data);
+      console.error('   Mensaje:', error.message);
+      return [];
     }
   },
 

@@ -28,12 +28,6 @@ const Navbar: React.FC = () => {
             Inicio
           </Link>
           <Link 
-            to="/turnos" 
-            className={`navbar-item ${isActive('/turnos') ? 'active' : ''}`}
-          >
-            Turnos
-          </Link>
-          <Link 
             to="/kiosco" 
             className={`navbar-item ${isActive('/kiosco') ? 'active' : ''}`}
           >

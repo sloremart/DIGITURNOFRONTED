@@ -80,7 +80,7 @@ const Home: React.FC = () => {
               <span className="btn-icon">🎫</span>
               Tomar Turno
             </Link>
-            <Link to="/turnos" className="btn-secondary">
+            <Link to="/facturacion" className="btn-secondary">
               <span className="btn-icon">📋</span>
               Gestionar Turnos
             </Link>
@@ -119,7 +119,7 @@ const Home: React.FC = () => {
             <h3>Kiosco de Turnos</h3>
             <p>Interfaz táctil para que los pacientes tomen turnos por sí mismos</p>
           </Link>
-          <Link to="/turnos" className="action-card">
+          <Link to="/facturacion" className="action-card">
             <div className="action-icon">📋</div>
             <h3>Gestionar Turnos</h3>
             <p>Panel de administración para gestionar turnos y pacientes</p>
